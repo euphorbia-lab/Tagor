@@ -2,61 +2,90 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EventMap from '../../components/EventMap.tsx';
 import { buildGoogleCalendarUrl } from '../../lib/calendar';
+import { getReadClient } from '../../lib/supabase';
+import type { PublicEvent } from '../../lib/event';
 
 // SSR (not prerendered) so Open Graph meta reflects THIS event for social scrapers.
 export const prerender = false;
 
 const { slug } = Astro.params;
 
-// --- TODO: replace with a Supabase lookup by slug (RLS: single-row by slug). ---
-// For now, a mock event so the page renders end-to-end during scaffolding.
-type MapMode = 'none' | 'point' | 'area';
-interface EventData {
-  title: string;
-  startISO: string;
-  endISO?: string;
-  allDay: boolean;
-  locationText: string;
-  mapMode: MapMode;
-  lat?: number;
-  lng?: number;
-  description?: string;
-  hostedBy?: string;
-  externalUrl?: string;
+// Read the event by its secret slug via the locked-down get_event RPC.
+let ev: PublicEvent | null = null;
+if (slug) {
+  const { data, error } = await getReadClient().rpc('get_event', { p_slug: slug });
+  if (error) {
+    console.error('get_event failed:', error.message);
+  } else if (Array.isArray(data) && data.length > 0) {
+    ev = data[0] as PublicEvent;
+  }
 }
 
-const event: EventData | null = {
-  title: 'Fiesta en Pico del Cuervo',
-  startISO: '2026-09-05T20:00:00+01:00',
-  allDay: false,
-  locationText: 'Pico del Cuervo (el sótano de la abuela)',
-  mapMode: 'area',
-  lat: 28.0225,
-  lng: -15.6461,
-  description: 'Trae algo para compartir. Empezamos al atardecer.',
-  hostedBy: 'La Cueva Collective',
-  externalUrl: undefined,
+// Unknown or expired slug -> 404 (no hint that the event ever existed).
+if (!ev) {
+  return new Response(null, { status: 404 });
+}
+
+const lang = ev.lang === 'en' ? 'en' : 'es';
+const L =
+  lang === 'en'
+    ? {
+        when: 'When',
+        where: 'Where',
+        details: 'More details',
+        hostedBy: 'Hosted by',
+        addCal: 'Add to calendar',
+        more: 'More info',
+        allDay: 'All day',
+        footMade: 'Made with',
+        footHow: 'link-only, no accounts, self-deleting',
+        footOss: 'open source',
+        locale: 'en-GB',
+      }
+    : {
+        when: 'Cuándo',
+        where: 'Dónde',
+        details: 'Más detalles',
+        hostedBy: 'Organiza',
+        addCal: 'Añadir al calendario',
+        more: 'Más información',
+        allDay: 'Todo el día',
+        footMade: 'Hecho con',
+        footHow: 'solo con enlace, sin cuentas, se borra solo',
+        footOss: 'código abierto',
+        locale: 'es-ES',
+      };
+
+// Map the RPC row into the shape the template uses.
+const event = {
+  title: ev.title,
+  locationText: ev.location_text,
+  mapMode: ev.map_mode,
+  lat: ev.lat,
+  lng: ev.lng,
+  areaRadius: ev.area_radius,
+  description: ev.description,
+  hostedBy: ev.hosted_by,
+  externalUrl: ev.external_url,
+  startISO: ev.start_at,
+  endISO: ev.end_at,
 };
 
-if (!event) {
-  return new Response('Not found', { status: 404 });
-}
-
 const start = new Date(event.startISO);
-const dateFmt = new Intl.DateTimeFormat('es-ES', {
+const dateFmt = new Intl.DateTimeFormat(L.locale, {
   weekday: 'long',
   day: 'numeric',
   month: 'long',
 });
-const timeFmt = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' });
+const timeFmt = new Intl.DateTimeFormat(L.locale, { hour: '2-digit', minute: '2-digit' });
 
 const dateLabel = dateFmt.format(start);
-const timeLabel = event.allDay ? 'Todo el día' : timeFmt.format(start);
+const timeLabel = ev.all_day ? L.allDay : timeFmt.format(start);
 
 const calendarUrl = buildGoogleCalendarUrl({
   title: event.title,
   startISO: event.startISO,
-  endISO: event.endISO,
+  endISO: event.endISO ?? undefined,
   details: event.description ?? '',
   location: event.locationText,
 });
@@ -69,19 +98,19 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).to
   description={event.description ?? `${dateLabel} · ${event.locationText}`}
   canonical={canonical}
   noindex={true}
-  lang="es"
+  lang={lang}
 >
   <main class="wrap">
     <h1 class="title">{event.title}</h1>
 
     <section class="block">
-      <h2 class="label">Cuándo</h2>
+      <h2 class="label">{L.when}</h2>
       <p class="big" style="text-transform:capitalize">{dateLabel}</p>
       <p class="muted">{timeLabel}</p>
     </section>
 
     <section class="block">
-      <h2 class="label">Dónde</h2>
+      <h2 class="label">{L.where}</h2>
       <p class="big">{event.locationText}</p>
       {
         event.mapMode !== 'none' && event.lat != null && event.lng != null && (
@@ -90,6 +119,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).to
             lat={event.lat}
             lng={event.lng}
             mode={event.mapMode}
+            areaRadius={event.areaRadius ?? 500}
             title={event.title}
           />
         )
@@ -99,7 +129,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).to
     {
       event.description && (
         <section class="block">
-          <h2 class="label">Más detalles</h2>
+          <h2 class="label">{L.details}</h2>
           <p class="body">{event.description}</p>
         </section>
       )
@@ -107,26 +137,26 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).to
 
     {
       event.hostedBy && (
-        <p class="muted host">Organiza · <strong>{event.hostedBy}</strong></p>
+        <p class="muted host">{L.hostedBy} · <strong>{event.hostedBy}</strong></p>
       )
     }
 
     <div class="actions">
       <a class="btn btn--primary" href={calendarUrl} target="_blank" rel="noopener"
-        >Añadir al calendario</a
+        >{L.addCal}</a
       >
       {
         event.externalUrl && (
           <a class="btn" href={event.externalUrl} target="_blank" rel="noopener noreferrer">
-            Más información
+            {L.more}
           </a>
         )
       }
     </div>
 
     <footer class="foot muted">
-      Hecho con <a href="/">Tagor</a> · solo con enlace, sin cuentas, se borra solo ·
-      <a href="https://github.com" target="_blank" rel="noopener">código abierto</a>
+      {L.footMade} <a href="/">Tagor</a> · {L.footHow} ·
+      <a href="https://github.com/euphorbia-lab/Tagor" target="_blank" rel="noopener">{L.footOss}</a>
     </footer>
   </main>
 
