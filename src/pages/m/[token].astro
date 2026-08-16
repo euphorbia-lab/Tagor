@@ -1,35 +1,159 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getServiceClient } from '../../lib/supabase';
+import QRCode from 'qrcode';
 
-// SSR - the manage page is reached only via a secret token link.
+// SSR — the manage page is reached only via a secret token link.
 export const prerender = false;
 
 const { token } = Astro.params;
 
-// TODO: look up the event by manage token (RLS-guarded). If found, show:
-//   - the view link + QR to share
-//   - edit form (same fields as create)
-//   - delete button (with confirm)
-//   - optional PIN gate before edit/delete
-// Never expose the manage token in any public/view context.
+// Read the full row by manage token, server-side with the service role.
+let ev: any = null;
+if (token) {
+  const { data, error } = await getServiceClient()
+    .from('events')
+    .select('*')
+    .eq('manage_token', token)
+    .maybeSingle();
+  if (error) console.error('manage lookup failed:', error.message);
+  ev = data;
+}
+
+if (!ev) {
+  return new Response(null, { status: 404 });
+}
+
+const lang = ev.lang === 'en' ? 'en' : 'es';
+const L =
+  lang === 'en'
+    ? {
+        title: 'Manage your event',
+        shareIntro: 'Share this link or the QR:',
+        viewLabel: 'Link to share',
+        copy: 'Copy',
+        copied: 'Copied',
+        open: 'Open event',
+        dangerTitle: 'Delete',
+        dangerBody: 'This permanently deletes the event. It cannot be undone.',
+        del: 'Delete event',
+        confirm: 'Delete this event permanently?',
+        deleting: 'Deleting…',
+        deleted: 'Event deleted.',
+        delError: 'Could not delete. Try again.',
+        locale: 'en-GB',
+      }
+    : {
+        title: 'Gestiona tu evento',
+        shareIntro: 'Comparte este enlace o el QR:',
+        viewLabel: 'Enlace para compartir',
+        copy: 'Copiar',
+        copied: 'Copiado',
+        open: 'Abrir evento',
+        dangerTitle: 'Borrar',
+        dangerBody: 'Esto borra el evento para siempre. No se puede deshacer.',
+        del: 'Borrar evento',
+        confirm: '¿Borrar este evento para siempre?',
+        deleting: 'Borrando…',
+        deleted: 'Evento borrado.',
+        delError: 'No se pudo borrar. Inténtalo de nuevo.',
+        locale: 'es-ES',
+      };
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || Astro.url.origin;
+const viewUrl = `${siteUrl}/e/${ev.view_slug}`;
+const qr = await QRCode.toDataURL(viewUrl, { margin: 1, width: 220 });
+
+const start = new Date(ev.start_at);
+const whenLabel =
+  new Intl.DateTimeFormat(L.locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(start) +
+  (ev.all_day
+    ? ''
+    : ' · ' + new Intl.DateTimeFormat(L.locale, { hour: '2-digit', minute: '2-digit' }).format(start));
 ---
 
-<BaseLayout title="Gestionar evento · Tagor" lang="es" noindex={true}>
+<BaseLayout title={`${L.title} · Tagor`} lang={lang} noindex={true}>
   <main class="wrap">
-    <a href="/" class="muted">← Tagor</a>
-    <h1>Gestionar evento</h1>
-    <p class="muted">
-      Enlace privado de gestión. Aquí podrás compartir el enlace/QR, editar y borrar tu
-      evento. (Pendiente de implementar.)
+    <a href="/" class="muted back">← Tagor</a>
+    <h1>{L.title}</h1>
+
+    <p class="summary muted">
+      <strong class="summary__title">{ev.title}</strong><br />
+      <span style="text-transform:capitalize">{whenLabel}</span><br />
+      {ev.location_text}
     </p>
-    <p class="muted" style="font-size:13px">token: <code>{token}</code></p>
+
+    <p class="muted label">{L.viewLabel}</p>
+    <div class="linkbox">
+      <input id="viewlink" readonly value={viewUrl} />
+      <button class="btn" id="copybtn" data-copy={L.copy} data-copied={L.copied}>{L.copy}</button>
+    </div>
+
+    <img class="qr" src={qr} alt="QR" width={200} height={200} />
+
+    <a class="btn btn--primary open" href={viewUrl}>{L.open}</a>
+
+    <section class="danger">
+      <h2>{L.dangerTitle}</h2>
+      <p class="muted">{L.dangerBody}</p>
+      <button class="btn danger__btn" id="delbtn">{L.del}</button>
+      <p id="delmsg" class="delmsg"></p>
+    </section>
   </main>
 
+  <script define:vars={{ token, msg: L }}>
+    const copybtn = document.getElementById('copybtn');
+    copybtn?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(document.getElementById('viewlink').value);
+        copybtn.textContent = copybtn.dataset.copied;
+        setTimeout(() => (copybtn.textContent = copybtn.dataset.copy), 1500);
+      } catch (_) {}
+    });
+
+    const delbtn = document.getElementById('delbtn');
+    const delmsg = document.getElementById('delmsg');
+    delbtn?.addEventListener('click', async () => {
+      if (!confirm(msg.confirm)) return;
+      delbtn.disabled = true;
+      delbtn.textContent = msg.deleting;
+      try {
+        const res = await fetch('/api/delete-event', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ manage_token: token }),
+        });
+        if (res.ok) {
+          delmsg.textContent = msg.deleted;
+          delmsg.classList.add('ok');
+          delbtn.style.display = 'none';
+        } else {
+          delmsg.textContent = msg.delError;
+          delbtn.disabled = false;
+          delbtn.textContent = msg.del;
+        }
+      } catch (_) {
+        delmsg.textContent = msg.delError;
+        delbtn.disabled = false;
+        delbtn.textContent = msg.del;
+      }
+    });
+  </script>
+
   <style>
-    h1 {
-      font-size: 28px;
-      letter-spacing: -0.02em;
-      margin: 16px 0 8px;
-    }
+    .back { display: inline-block; margin-bottom: 20px; }
+    h1 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 20px; }
+    .summary { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 28px; }
+    .summary__title { color: var(--text); font-size: 17px; }
+    .label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 6px; }
+    .linkbox { display: flex; gap: 8px; margin-bottom: 20px; }
+    .linkbox input { flex: 1; font-family: ui-monospace, monospace; font-size: 13px; }
+    .qr { display: block; margin: 0 auto 20px; border-radius: 12px; border: 1px solid var(--border); background: #fff; padding: 8px; }
+    .open { margin-bottom: 40px; }
+    .danger { border-top: 1px solid var(--border); padding-top: 24px; }
+    .danger h2 { font-size: 16px; margin: 0 0 6px; }
+    .danger__btn { color: var(--accent); border-color: var(--accent); }
+    .delmsg { font-weight: 600; margin: 10px 0 0; }
+    .delmsg.ok { color: var(--accent); }
   </style>
 </BaseLayout>
