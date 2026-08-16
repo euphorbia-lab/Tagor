@@ -34,8 +34,11 @@ See [SPEC.md](./SPEC.md) for the full product spec and data model.
 
 ## Status
 
-🚧 Early scaffold. The skeleton, salvaged map/geocoder, and page structure are in place.
-Supabase schema, the create flow, and the OG rendering are next. Not yet functional.
+🚧 In progress. Working: Supabase schema (locked-down RLS + get_event), the
+event page reading real data with server-rendered OG meta, the create endpoint
+(Turnstile + rate limit + insert), and the create form (fields, map picker with
+address search, QR on success). Next: the manage page (edit/delete) and expiry
+cleanup, then deploy.
 
 ## Development
 
