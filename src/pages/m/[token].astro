@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import EditForm from '../../components/EditForm.tsx';
 import { getServiceClient } from '../../lib/supabase';
 import QRCode from 'qrcode';
 
@@ -34,6 +35,7 @@ const L =
         copy: 'Copy',
         copied: 'Copied',
         open: 'Open event',
+        editTitle: 'Edit',
         dangerTitle: 'Delete',
         dangerBody: 'This permanently deletes the event. It cannot be undone.',
         del: 'Delete event',
@@ -50,6 +52,7 @@ const L =
         copy: 'Copiar',
         copied: 'Copiado',
         open: 'Abrir evento',
+        editTitle: 'Editar',
         dangerTitle: 'Borrar',
         dangerBody: 'Esto borra el evento para siempre. No se puede deshacer.',
         del: 'Borrar evento',
@@ -63,6 +66,21 @@ const L =
 const siteUrl = import.meta.env.PUBLIC_SITE_URL || Astro.url.origin;
 const viewUrl = `${siteUrl}/e/${ev.view_slug}`;
 const qr = await QRCode.toDataURL(viewUrl, { margin: 1, width: 220 });
+
+const initial = {
+  title: ev.title,
+  start_at: ev.start_at,
+  end_at: ev.end_at,
+  all_day: ev.all_day,
+  location_text: ev.location_text,
+  map_mode: ev.map_mode,
+  lat: ev.lat,
+  lng: ev.lng,
+  area_radius: ev.area_radius,
+  description: ev.description,
+  hosted_by: ev.hosted_by,
+  external_url: ev.external_url,
+};
 
 const start = new Date(ev.start_at);
 const whenLabel =
@@ -92,6 +110,11 @@ const whenLabel =
     <img class="qr" src={qr} alt="QR" width={200} height={200} />
 
     <a class="btn btn--primary open" href={viewUrl}>{L.open}</a>
+
+    <section class="edit">
+      <h2>{L.editTitle}</h2>
+      <EditForm client:load lang={lang} manageToken={token as string} initial={initial} />
+    </section>
 
     <section class="danger">
       <h2>{L.dangerTitle}</h2>
@@ -150,6 +173,8 @@ const whenLabel =
     .linkbox input { flex: 1; font-family: ui-monospace, monospace; font-size: 13px; }
     .qr { display: block; margin: 0 auto 20px; border-radius: 12px; border: 1px solid var(--border); background: #fff; padding: 8px; }
     .open { margin-bottom: 40px; }
+    .edit { border-top: 1px solid var(--border); padding-top: 24px; margin-bottom: 40px; }
+    .edit h2 { font-size: 16px; margin: 0 0 16px; }
     .danger { border-top: 1px solid var(--border); padding-top: 24px; }
     .danger h2 { font-size: 16px; margin: 0 0 6px; }
     .danger__btn { color: var(--accent); border-color: var(--accent); }
