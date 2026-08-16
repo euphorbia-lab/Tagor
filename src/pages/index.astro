@@ -1,0 +1,120 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { useTranslations } from '../i18n/ui';
+
+export const prerender = true;
+
+const t = useTranslations('es');
+---
+
+<BaseLayout
+  title="Tagor"
+  description={t('site.description')}
+  lang="es"
+>
+  <main class="wrap">
+    <header class="top">
+      <span class="logo">Tagor</span>
+      <nav class="top__nav">
+        <a href="/en/">EN</a>
+        <button id="theme-toggle" class="icon-btn" aria-label="Cambiar tema">◐</button>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <h1>{t('site.tagline')}</h1>
+      <p class="muted lead">{t('site.description')}</p>
+      <a href="/nuevo" class="btn btn--primary">{t('nav.create')}</a>
+    </section>
+
+    <section class="how">
+      <h2>{t('how.title')}</h2>
+      <ul>
+        <li>{t('how.1')}</li>
+        <li>{t('how.2')}</li>
+        <li>{t('how.3')}</li>
+        <li>{t('how.4')}</li>
+      </ul>
+    </section>
+  </main>
+
+  <script is:inline>
+    const btn = document.getElementById('theme-toggle');
+    btn?.addEventListener('click', () => {
+      const root = document.documentElement;
+      const current =
+        root.getAttribute('data-theme') ||
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try {
+        localStorage.setItem('tagor-theme', next);
+      } catch (_) {}
+    });
+  </script>
+
+  <style>
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 64px;
+    }
+    .logo {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+    .top__nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .hero {
+      margin-bottom: 72px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 6vw, 40px);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin: 0 0 16px;
+    }
+    .lead {
+      font-size: 17px;
+      margin: 0 0 28px;
+      max-width: 46ch;
+    }
+    .how h2 {
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin: 0 0 12px;
+    }
+    .how ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+    .how li {
+      padding-left: 20px;
+      position: relative;
+    }
+    .how li::before {
+      content: '·';
+      position: absolute;
+      left: 4px;
+      color: var(--accent);
+      font-weight: 800;
+    }
+  </style>
+</BaseLayout>

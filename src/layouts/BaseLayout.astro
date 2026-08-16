@@ -1,0 +1,59 @@
+---
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description?: string;
+  /** Absolute URL for OG image (social preview). */
+  ogImage?: string;
+  /** Absolute canonical URL for this page. */
+  canonical?: string;
+  /** Set true on private event pages so search engines never index them. */
+  noindex?: boolean;
+  lang?: string;
+}
+
+const {
+  title,
+  description = '',
+  ogImage,
+  canonical,
+  noindex = false,
+  lang = 'es',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    {/* Open Graph - rendered server-side so social scrapers see real meta. */}
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {/* No-flash theme init: honor stored preference before first paint. */}
+    <script is:inline>
+      (() => {
+        try {
+          const t = localStorage.getItem('tagor-theme');
+          if (t === 'dark' || t === 'light') {
+            document.documentElement.setAttribute('data-theme', t);
+          }
+        } catch (_) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

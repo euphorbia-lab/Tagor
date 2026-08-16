@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { useTranslations } from '../i18n/ui';
+
+export const prerender = true;
+
+const t = useTranslations('es');
+---
+
+<BaseLayout title={`${t('create.title')} · Tagor`} lang="es" noindex={true}>
+  <main class="wrap">
+    <a href="/" class="muted back">← Tagor</a>
+    <h1>{t('create.title')}</h1>
+    <p class="muted">{t('create.soon')}</p>
+
+    {/* TODO: build the create form here.
+        Fields (see SPEC.md): title*, start date/time* (+ all-day, optional end),
+        location free-text* (+ optional map: precise point OR area), description,
+        hosted by, one external link. No cover image in v1 (auto-gradient header).
+        Then: Turnstile check → insert via Supabase → show view link + manage link + QR. */}
+  </main>
+
+  <style>
+    .back {
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+    }
+  </style>
+</BaseLayout>

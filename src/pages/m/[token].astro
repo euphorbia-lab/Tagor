@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// SSR - the manage page is reached only via a secret token link.
+export const prerender = false;
+
+const { token } = Astro.params;
+
+// TODO: look up the event by manage token (RLS-guarded). If found, show:
+//   - the view link + QR to share
+//   - edit form (same fields as create)
+//   - delete button (with confirm)
+//   - optional PIN gate before edit/delete
+// Never expose the manage token in any public/view context.
+---
+
+<BaseLayout title="Gestionar evento · Tagor" lang="es" noindex={true}>
+  <main class="wrap">
+    <a href="/" class="muted">← Tagor</a>
+    <h1>Gestionar evento</h1>
+    <p class="muted">
+      Enlace privado de gestión. Aquí podrás compartir el enlace/QR, editar y borrar tu
+      evento. (Pendiente de implementar.)
+    </p>
+    <p class="muted" style="font-size:13px">token: <code>{token}</code></p>
+  </main>
+
+  <style>
+    h1 {
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      margin: 16px 0 8px;
+    }
+  </style>
+</BaseLayout>

@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations } from '../../i18n/ui';
+
+export const prerender = true;
+
+const t = useTranslations('en');
+---
+
+<BaseLayout title={`${t('create.title')} · Tagor`} lang="en" noindex={true}>
+  <main class="wrap">
+    <a href="/en/" class="muted back">← Tagor</a>
+    <h1>{t('create.title')}</h1>
+    <p class="muted">{t('create.soon')}</p>
+  </main>
+
+  <style>
+    .back {
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+    }
+  </style>
+</BaseLayout>

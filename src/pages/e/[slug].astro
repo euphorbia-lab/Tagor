@@ -1,0 +1,175 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EventMap from '../../components/EventMap.tsx';
+import { buildGoogleCalendarUrl } from '../../lib/calendar';
+
+// SSR (not prerendered) so Open Graph meta reflects THIS event for social scrapers.
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+// --- TODO: replace with a Supabase lookup by slug (RLS: single-row by slug). ---
+// For now, a mock event so the page renders end-to-end during scaffolding.
+type MapMode = 'none' | 'point' | 'area';
+interface EventData {
+  title: string;
+  startISO: string;
+  endISO?: string;
+  allDay: boolean;
+  locationText: string;
+  mapMode: MapMode;
+  lat?: number;
+  lng?: number;
+  description?: string;
+  hostedBy?: string;
+  externalUrl?: string;
+}
+
+const event: EventData | null = {
+  title: 'Fiesta en Pico del Cuervo',
+  startISO: '2026-09-05T20:00:00+01:00',
+  allDay: false,
+  locationText: 'Pico del Cuervo (el sótano de la abuela)',
+  mapMode: 'area',
+  lat: 28.0225,
+  lng: -15.6461,
+  description: 'Trae algo para compartir. Empezamos al atardecer.',
+  hostedBy: 'La Cueva Collective',
+  externalUrl: undefined,
+};
+
+if (!event) {
+  return new Response('Not found', { status: 404 });
+}
+
+const start = new Date(event.startISO);
+const dateFmt = new Intl.DateTimeFormat('es-ES', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+});
+const timeFmt = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+const dateLabel = dateFmt.format(start);
+const timeLabel = event.allDay ? 'Todo el día' : timeFmt.format(start);
+
+const calendarUrl = buildGoogleCalendarUrl({
+  title: event.title,
+  startISO: event.startISO,
+  endISO: event.endISO,
+  details: event.description ?? '',
+  location: event.locationText,
+});
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).toString();
+---
+
+<BaseLayout
+  title={`${event.title} · Tagor`}
+  description={event.description ?? `${dateLabel} · ${event.locationText}`}
+  canonical={canonical}
+  noindex={true}
+  lang="es"
+>
+  <main class="wrap">
+    <h1 class="title">{event.title}</h1>
+
+    <section class="block">
+      <h2 class="label">Cuándo</h2>
+      <p class="big" style="text-transform:capitalize">{dateLabel}</p>
+      <p class="muted">{timeLabel}</p>
+    </section>
+
+    <section class="block">
+      <h2 class="label">Dónde</h2>
+      <p class="big">{event.locationText}</p>
+      {
+        event.mapMode !== 'none' && event.lat != null && event.lng != null && (
+          <EventMap
+            client:visible
+            lat={event.lat}
+            lng={event.lng}
+            mode={event.mapMode}
+            title={event.title}
+          />
+        )
+      }
+    </section>
+
+    {
+      event.description && (
+        <section class="block">
+          <h2 class="label">Más detalles</h2>
+          <p class="body">{event.description}</p>
+        </section>
+      )
+    }
+
+    {
+      event.hostedBy && (
+        <p class="muted host">Organiza · <strong>{event.hostedBy}</strong></p>
+      )
+    }
+
+    <div class="actions">
+      <a class="btn btn--primary" href={calendarUrl} target="_blank" rel="noopener"
+        >Añadir al calendario</a
+      >
+      {
+        event.externalUrl && (
+          <a class="btn" href={event.externalUrl} target="_blank" rel="noopener noreferrer">
+            Más información
+          </a>
+        )
+      }
+    </div>
+
+    <footer class="foot muted">
+      Hecho con <a href="/">Tagor</a> · solo con enlace, sin cuentas, se borra solo ·
+      <a href="https://github.com" target="_blank" rel="noopener">código abierto</a>
+    </footer>
+  </main>
+
+  <style>
+    .title {
+      font-size: clamp(26px, 6vw, 36px);
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      margin: 8px 0 36px;
+    }
+    .block {
+      margin-bottom: 32px;
+    }
+    .label {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin: 0 0 6px;
+    }
+    .big {
+      font-size: 19px;
+      font-weight: 600;
+      margin: 0 0 2px;
+    }
+    .body {
+      white-space: pre-wrap;
+      margin: 0;
+    }
+    .host {
+      margin: 0 0 24px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 48px;
+    }
+    .foot {
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      line-height: 1.7;
+    }
+  </style>
+</BaseLayout>
