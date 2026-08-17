@@ -24,6 +24,11 @@ const {
   noindex = false,
   lang = 'es',
 } = Astro.props;
+
+// Always emit an explicit og:image (falls back to the logo) — scrapers that
+// find none will otherwise guess, which can pick an awkward image on the page.
+const origin = Astro.site ?? Astro.url.origin;
+const resolvedOgImage = ogImage ?? new URL('/logo.png', origin).toString();
 ---
 
 <!doctype html>
@@ -32,6 +37,8 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     {/* Critical: set canvas color + background before external CSS loads, so
         navigating between pages never flashes a white/unstyled frame. */}
     <style is:inline>
@@ -50,10 +57,11 @@ const {
     {/* Open Graph - rendered server-side so social scrapers see real meta. */}
     <meta property="og:title" content={title} />
     {description && <meta property="og:description" content={description} />}
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:image" content={resolvedOgImage} />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={resolvedOgImage} />
 
     {/* No-flash theme init: honor stored preference before first paint. */}
     <script is:inline>
