@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EventMap from '../../components/EventMap.tsx';
+import ShareActions from '../../components/ShareActions.tsx';
 import { buildGoogleCalendarUrl } from '../../lib/calendar';
 import { getReadClient } from '../../lib/supabase';
 import type { PublicEvent } from '../../lib/event';
@@ -41,6 +42,7 @@ const L =
         footHow: 'link-only, no accounts, self-deleting',
         footOss: 'open source',
         legal: 'Legal',
+        share: 'Share',
         disclaimer: 'Created with Tagor, not by Tagor. Tagor is not responsible for this event.',
         locale: 'en-GB',
       }
@@ -56,6 +58,7 @@ const L =
         footHow: 'solo con enlace, sin cuentas, se borra solo',
         footOss: 'código abierto',
         legal: 'Aviso legal',
+        share: 'Compartir',
         disclaimer: 'Creado con Tagor, no por Tagor. Tagor no se responsabiliza de este evento.',
         locale: 'es-ES',
       };
@@ -157,6 +160,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).to
         )
       }
     </div>
+
+    <section class="block share-block">
+      <h2 class="label">{L.share}</h2>
+      <ShareActions client:visible viewUrl={canonical} title={event.title} dateLabel={dateLabel} lang={lang} />
+    </section>
 
     <footer class="foot muted">
       <p class="foot__disc">{L.disclaimer}</p>

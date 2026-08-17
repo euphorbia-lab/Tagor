@@ -32,6 +32,16 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {/* Critical: set canvas color + background before external CSS loads, so
+        navigating between pages never flashes a white/unstyled frame. */}
+    <style is:inline>
+      :root { color-scheme: light dark; background: #f5f5f3; }
+      :root[data-theme='light'] { color-scheme: light; background: #f5f5f3; }
+      :root[data-theme='dark'] { color-scheme: dark; background: #0e0f11; }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) { color-scheme: dark; background: #0e0f11; }
+      }
+    </style>
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     {canonical && <link rel="canonical" href={canonical} />}
