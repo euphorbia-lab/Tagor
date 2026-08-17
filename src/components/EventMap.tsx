@@ -15,6 +15,14 @@ interface EventMapProps {
 
 const ACCENT = '#c8452f';
 
+function isDark(): boolean {
+  if (typeof document === 'undefined') return false;
+  const t = document.documentElement.getAttribute('data-theme');
+  if (t === 'dark') return true;
+  if (t === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
 /**
  * Static (non-interactive) map preview using Leaflet + free CartoDB tiles.
  * Salvaged and simplified from the original Tagor EventLocationMap.
@@ -50,10 +58,15 @@ export default function EventMap({ lat, lng, mode, title, areaRadius = 500 }: Ev
         attributionControl: true,
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        maxZoom: 19,
-      }).addTo(map);
+      L.tileLayer(
+        isDark()
+          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        {
+          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          maxZoom: 19,
+        }
+      ).addTo(map);
 
       if (mode === 'area') {
         L.circle([lat, lng], {

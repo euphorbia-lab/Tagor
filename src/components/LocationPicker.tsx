@@ -19,6 +19,17 @@ interface Props {
 
 const ACCENT = '#c8452f';
 const DEFAULT_CENTER: [number, number] = [28.1, -15.43]; // Gran Canaria
+
+// Match the map tiles to the current theme so the map isn't a bright glare in dark mode.
+function isDark(): boolean {
+  if (typeof document === 'undefined') return false;
+  const t = document.documentElement.getAttribute('data-theme');
+  if (t === 'dark') return true;
+  if (t === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 const T = {
   es: {
     addMap: 'Añadir un mapa (opcional)',
@@ -48,6 +59,9 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
   const valueRef = useRef(value);
   valueRef.current = value;
 
+  // Set when a result is chosen, so the debounced search doesn't re-open the dropdown.
+  const justPicked = useRef(false);
+
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const LRef = useRef<any>(null);
@@ -60,6 +74,11 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
 
   // Debounced address search.
   useEffect(() => {
+    if (justPicked.current) {
+      justPicked.current = false;
+      setResults([]);
+      return;
+    }
     if (!enabled || query.trim().length < 3) {
       setResults([]);
       return;
@@ -93,8 +112,14 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
       const center: [number, number] =
         value.lat != null && value.lng != null ? [value.lat, value.lng] : DEFAULT_CENTER;
 
-      const map = L.map(mapEl.current, { center, zoom: value.lat != null ? 15 : 11 });
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      const map = L.map(mapEl.current, {
+        center,
+        zoom: value.lat != null ? 15 : 11,
+        zoomControl: false,
+      });
+      // Zoom control bottom-right so it never covers the search results dropdown.
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      L.tileLayer(isDark() ? TILE_DARK : TILE_LIGHT, {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
         maxZoom: 19,
       }).addTo(map);
@@ -168,9 +193,11 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
   }
 
   function pickResult(r: AddressResult) {
+    justPicked.current = true;
     setQuery(r.label);
     setResults([]);
-    if (mapRef.current) mapRef.current.setView([r.lat, r.lon], 16);
+    // Zoom in close so the draggable pin can be nudged to the exact spot.
+    if (mapRef.current) mapRef.current.setView([r.lat, r.lon], 17);
     setPoint(r.lat, r.lon);
   }
 
@@ -266,7 +293,7 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
         .lp__results {
           list-style: none; margin: 4px 0 0; padding: 4px;
           border: 1px solid var(--border); border-radius: var(--radius);
-          background: var(--surface); position: absolute; z-index: 500; width: 100%;
+          background: var(--surface); position: absolute; z-index: 1200; width: 100%;
           box-shadow: var(--shadow); max-height: 240px; overflow-y: auto;
         }
         .lp__results button {
