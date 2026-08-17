@@ -58,4 +58,9 @@ const legalHref = lang === 'en' ? '/en/legal' : '/legal';
     font-size: 14px;
     flex-shrink: 0;
   }
+  /* The class sets display:flex, which would override the [hidden] attribute.
+     This rule lets `hidden` actually hide the banner (initial state + dismiss). */
+  .cookie[hidden] {
+    display: none;
+  }
 </style>

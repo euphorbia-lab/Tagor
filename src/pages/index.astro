@@ -94,11 +94,8 @@ const t = useTranslations('es');
       cursor: pointer;
     }
     .hero {
-      min-height: calc(100svh - 180px);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      margin-bottom: 0;
+      margin-top: clamp(36px, 10vh, 100px);
+      margin-bottom: 56px;
     }
     .hero h1 {
       font-size: clamp(28px, 6vw, 40px);
