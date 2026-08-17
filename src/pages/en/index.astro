@@ -32,6 +32,11 @@ const t = useTranslations('en');
         <li>{t('how.4')}</li>
       </ul>
     </section>
+
+    <footer class="foot muted">
+      <a href="/en/legal">Legal & privacy</a> ·
+      <a href="https://github.com/euphorbia-lab/Tagor" target="_blank" rel="noopener">Open source</a>
+    </footer>
   </main>
 
   <script is:inline>
@@ -65,6 +70,17 @@ const t = useTranslations('en');
       display: flex;
       align-items: center;
       gap: 16px;
+    }
+    .top__nav a {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .foot {
+      margin-top: 72px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
     }
     .icon-btn {
       background: none;

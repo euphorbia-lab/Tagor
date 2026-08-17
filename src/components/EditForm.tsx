@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import LocationPicker, { type LocationValue } from './LocationPicker';
+import DateTimeField from './DateTimeField';
 
 interface InitialEvent {
   title: string;
@@ -27,6 +28,7 @@ const T = {
     title: 'Título',
     start: 'Empieza',
     end: 'Termina (opcional)',
+    time: 'Hora',
     allDay: 'Todo el día',
     location: 'Lugar',
     locationPh: 'Puede ser un nombre, no hace falta dirección',
@@ -45,6 +47,7 @@ const T = {
     title: 'Title',
     start: 'Starts',
     end: 'Ends (optional)',
+    time: 'Time',
     allDay: 'All day',
     location: 'Place',
     locationPh: 'Can be a nickname, no address needed',
@@ -92,7 +95,8 @@ export default function EditForm({ lang, manageToken, initial }: Props) {
   const [saved, setSaved] = useState(false);
 
   function toISO(local: string): string {
-    return new Date(local).toISOString();
+    const withTime = local.includes('T') ? local : `${local}T12:00:00`;
+    return new Date(withTime).toISOString();
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -148,35 +152,14 @@ export default function EditForm({ lang, manageToken, initial }: Props) {
         <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} />
       </label>
 
-      <label className="cf-field">
-        <span>{t.start}</span>
-        <input
-          type={allDay ? 'date' : 'datetime-local'}
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-        />
-      </label>
+      <DateTimeField label={t.start} value={start} onChange={setStart} dateOnly={allDay} timeLabel={t.time} />
 
       <label className="cf-check">
-        <input
-          type="checkbox"
-          checked={allDay}
-          onChange={(e) => {
-            const on = e.target.checked;
-            setAllDay(on);
-            // Re-project the current start value into the right input format.
-            if (start) setStart(toLocalInput(toISO(start), on));
-          }}
-        />
+        <input type="checkbox" checked={allDay} onChange={(e) => setAllDay(e.target.checked)} />
         {t.allDay}
       </label>
 
-      {!allDay && (
-        <label className="cf-field">
-          <span>{t.end}</span>
-          <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
-        </label>
-      )}
+      {!allDay && <DateTimeField label={t.end} value={end} onChange={setEnd} timeLabel={t.time} />}
 
       <label className="cf-field">
         <span>{t.location}</span>

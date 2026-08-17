@@ -40,6 +40,8 @@ const L =
         footMade: 'Made with',
         footHow: 'link-only, no accounts, self-deleting',
         footOss: 'open source',
+        legal: 'Legal',
+        disclaimer: 'Created with Tagor, not by Tagor. Tagor is not responsible for this event.',
         locale: 'en-GB',
       }
     : {
@@ -53,6 +55,8 @@ const L =
         footMade: 'Hecho con',
         footHow: 'solo con enlace, sin cuentas, se borra solo',
         footOss: 'código abierto',
+        legal: 'Aviso legal',
+        disclaimer: 'Creado con Tagor, no por Tagor. Tagor no se responsabiliza de este evento.',
         locale: 'es-ES',
       };
 
@@ -155,7 +159,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).to
     </div>
 
     <footer class="foot muted">
+      <p class="foot__disc">{L.disclaimer}</p>
       {L.footMade} <a href="/">Tagor</a> · {L.footHow} ·
+      <a href={lang === 'en' ? '/en/legal' : '/legal'}>{L.legal}</a> ·
       <a href="https://github.com/euphorbia-lab/Tagor" target="_blank" rel="noopener">{L.footOss}</a>
     </footer>
   </main>
@@ -200,6 +206,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).to
       border-top: 1px solid var(--border);
       padding-top: 20px;
       line-height: 1.7;
+    }
+    .foot__disc {
+      margin: 0 0 8px;
     }
   </style>
 </BaseLayout>

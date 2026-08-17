@@ -25,7 +25,7 @@ const T = {
     precise: 'Punto exacto',
     area: 'Zona aproximada',
     search: 'Buscar dirección o lugar',
-    hint: 'Toca el mapa para colocar el punto.',
+    hint: 'Busca, y luego toca el mapa o arrastra el punto para ajustarlo.',
     hintArea: 'Toca el mapa para centrar la zona.',
     radius: 'Radio',
   },
@@ -34,7 +34,7 @@ const T = {
     precise: 'Exact point',
     area: 'Approximate area',
     search: 'Search address or place',
-    hint: 'Tap the map to place the point.',
+    hint: 'Search, then tap the map or drag the pin to fine-tune.',
     hintArea: 'Tap the map to center the area.',
     radius: 'Radius',
   },
@@ -43,6 +43,10 @@ const T = {
 export default function LocationPicker({ lang, value, onChange }: Props) {
   const t = T[lang];
   const enabled = value.mapMode !== 'none';
+
+  // Latest value, so map handlers registered once always read fresh state.
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
@@ -133,9 +137,9 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
       circleRef.current = null;
     }
 
-    if (value.mapMode === 'area') {
+    if (valueRef.current.mapMode === 'area') {
       circleRef.current = L.circle([lat, lng], {
-        radius: value.areaRadius,
+        radius: valueRef.current.areaRadius,
         color: ACCENT,
         weight: 1,
         fillColor: ACCENT,
@@ -148,12 +152,18 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
         iconSize: [24, 24],
         iconAnchor: [12, 24],
       });
-      markerRef.current = L.marker([lat, lng], { icon }).addTo(map);
+      const marker = L.marker([lat, lng], { icon, draggable: true }).addTo(map);
+      // Dragging the pin sets the exact spot, even when search was only approximate.
+      marker.on('dragend', () => {
+        const p = marker.getLatLng();
+        onChange({ ...valueRef.current, lat: p.lat, lng: p.lng });
+      });
+      markerRef.current = marker;
     }
   }
 
   function setPoint(lat: number, lng: number) {
-    onChange({ ...value, lat, lng });
+    onChange({ ...valueRef.current, lat, lng });
     draw(lat, lng);
   }
 

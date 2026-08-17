@@ -1,0 +1,61 @@
+---
+export interface Props {
+  lang?: string;
+}
+const { lang = 'es' } = Astro.props;
+const t =
+  lang === 'en'
+    ? { msg: 'No cookies here — just basic anonymous analytics.', more: 'Details', ok: 'OK' }
+    : { msg: 'Sin cookies. Solo analíticas anónimas básicas.', more: 'Detalles', ok: 'Vale' };
+const legalHref = lang === 'en' ? '/en/legal' : '/legal';
+---
+
+<div id="cookie-notice" class="cookie" hidden>
+  <span>{t.msg} <a href={legalHref}>{t.more}</a></span>
+  <button id="cookie-ok" class="btn">{t.ok}</button>
+</div>
+
+<script>
+  (function () {
+    try {
+      if (localStorage.getItem('tagor-cookie-ack')) return;
+    } catch (e) {}
+    const el = document.getElementById('cookie-notice');
+    if (el) el.hidden = false;
+    const ok = document.getElementById('cookie-ok');
+    ok &&
+      ok.addEventListener('click', function () {
+        try {
+          localStorage.setItem('tagor-cookie-ack', '1');
+        } catch (e) {}
+        if (el) el.hidden = true;
+      });
+  })();
+</script>
+
+<style>
+  .cookie {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    z-index: 900;
+  }
+  .cookie .btn {
+    padding: 7px 14px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+</style>

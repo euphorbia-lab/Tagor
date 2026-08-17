@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LegalContent from '../../components/LegalContent.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout title="Privacy & legal notice · Tagor" lang="en">
+  <main class="wrap">
+    <a href="/en/" class="muted back">← Tagor</a>
+    <h1>Privacy & legal notice</h1>
+    <LegalContent lang="en" />
+  </main>
+
+  <style>
+    .back { display: inline-block; margin-bottom: 20px; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+  </style>
+</BaseLayout>

@@ -1,0 +1,108 @@
+---
+// Condensed privacy policy + legal notice. Not a substitute for tailored legal
+// advice, but a clear, honest, minimal notice that fits the product.
+// TODO: replace the contact email with your real one before launch.
+export interface Props {
+  lang?: string;
+}
+const { lang = 'es' } = Astro.props;
+const CONTACT = 'hola@tagor.app';
+---
+
+{
+  lang === 'en' ? (
+    <div class="legal">
+      <h2>Privacy</h2>
+      <ul>
+        <li>No accounts, no sign-up, no personal data requested.</li>
+        <li>
+          No cookies. We use only basic, anonymous, aggregated analytics (Netlify) to count
+          visits. It does not identify anyone or track you across sites.
+        </li>
+        <li>
+          Events you create are stored temporarily (until about 14 days after the event date) on
+          Supabase (EU servers), then deleted automatically.
+        </li>
+        <li>The private manage link is the only way to edit or delete your event. Keep it safe.</li>
+        <li>We never sell or share your data.</li>
+      </ul>
+
+      <h2>Legal notice</h2>
+      <ul>
+        <li>Tagor is a free, open-source tool for creating and sharing event pages.</li>
+        <li>
+          Event content is created by users, not by Tagor. We do not review, endorse, or take
+          responsibility for it. <strong>Created with Tagor, not by Tagor.</strong>
+        </li>
+        <li>
+          If you see illegal or abusive content, contact us: <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
+        </li>
+        <li>The service is provided "as is", with no guarantee of availability.</li>
+        <li>
+          Open source under the MIT license:{' '}
+          <a href="https://github.com/euphorbia-lab/Tagor" target="_blank" rel="noopener">
+            source code
+          </a>
+          .
+        </li>
+      </ul>
+    </div>
+  ) : (
+    <div class="legal">
+      <h2>Privacidad</h2>
+      <ul>
+        <li>Sin cuentas, sin registro, sin pedir datos personales.</li>
+        <li>
+          Sin cookies. Solo usamos analíticas básicas, anónimas y agregadas (Netlify) para contar
+          visitas. No identifican a nadie ni te siguen entre webs.
+        </li>
+        <li>
+          Los eventos que creas se guardan de forma temporal (hasta unos 14 días después de la
+          fecha del evento) en Supabase (servidores en la UE), y luego se borran automáticamente.
+        </li>
+        <li>
+          El enlace privado de gestión es la única forma de editar o borrar tu evento. Guárdalo
+          bien.
+        </li>
+        <li>Nunca vendemos ni compartimos tus datos.</li>
+      </ul>
+
+      <h2>Aviso legal</h2>
+      <ul>
+        <li>Tagor es una herramienta gratuita y de código abierto para crear y compartir páginas de eventos.</li>
+        <li>
+          El contenido de los eventos lo crean las personas usuarias, no Tagor. No lo revisamos, ni
+          lo avalamos, ni nos hacemos responsables de él. <strong>Creado con Tagor, no por Tagor.</strong>
+        </li>
+        <li>
+          Si ves contenido ilegal o abusivo, escríbenos: <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
+        </li>
+        <li>El servicio se ofrece "tal cual", sin garantía de disponibilidad.</li>
+        <li>
+          Código abierto bajo licencia MIT:{' '}
+          <a href="https://github.com/euphorbia-lab/Tagor" target="_blank" rel="noopener">
+            código fuente
+          </a>
+          .
+        </li>
+      </ul>
+    </div>
+  )
+}
+
+<style>
+  .legal h2 {
+    font-size: 18px;
+    margin: 32px 0 10px;
+  }
+  .legal ul {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 8px;
+    color: var(--text);
+  }
+  .legal li {
+    line-height: 1.5;
+  }
+</style>
