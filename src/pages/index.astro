@@ -63,7 +63,7 @@ const t = useTranslations('es');
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 64px;
+      margin-bottom: 0;
     }
     .logo {
       font-weight: 800;
@@ -94,7 +94,11 @@ const t = useTranslations('es');
       cursor: pointer;
     }
     .hero {
-      margin-bottom: 72px;
+      min-height: calc(100svh - 180px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-bottom: 0;
     }
     .hero h1 {
       font-size: clamp(28px, 6vw, 40px);
