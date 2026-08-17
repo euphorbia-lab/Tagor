@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="15" fill="#EE4B22"/>
+  <g fill="none" stroke="#6E1B10" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <!-- chunky rounded "t" evoking the tagor wordmark -->
+    <path d="M34 14 L34 40 Q34 48 42 47"/>
+    <path d="M21 26 L46 26"/>
+  </g>
+</svg>

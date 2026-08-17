@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EditForm from '../../components/EditForm.tsx';
+import ShareActions from '../../components/ShareActions.tsx';
 import { getServiceClient } from '../../lib/supabase';
-import QRCode from 'qrcode';
 
 // SSR — the manage page is reached only via a secret token link.
 export const prerender = false;
@@ -65,7 +65,6 @@ const L =
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL || Astro.url.origin;
 const viewUrl = `${siteUrl}/e/${ev.view_slug}`;
-const qr = await QRCode.toDataURL(viewUrl, { margin: 1, width: 220 });
 
 const initial = {
   title: ev.title,
@@ -101,15 +100,11 @@ const whenLabel =
       {ev.location_text}
     </p>
 
-    <p class="muted label">{L.viewLabel}</p>
-    <div class="linkbox">
-      <input id="viewlink" readonly value={viewUrl} />
-      <button class="btn" id="copybtn" data-copy={L.copy} data-copied={L.copied}>{L.copy}</button>
+    <div class="share">
+      <ShareActions client:load viewUrl={viewUrl} title={ev.title} dateLabel={whenLabel} lang={lang} />
     </div>
 
-    <img class="qr" src={qr} alt="QR" width={200} height={200} />
-
-    <a class="btn btn--primary open" href={viewUrl}>{L.open}</a>
+    <a class="btn open" href={viewUrl}>{L.open}</a>
 
     <section class="edit">
       <h2>{L.editTitle}</h2>
@@ -125,15 +120,6 @@ const whenLabel =
   </main>
 
   <script define:vars={{ token, msg: L }}>
-    const copybtn = document.getElementById('copybtn');
-    copybtn?.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(document.getElementById('viewlink').value);
-        copybtn.textContent = copybtn.dataset.copied;
-        setTimeout(() => (copybtn.textContent = copybtn.dataset.copy), 1500);
-      } catch (_) {}
-    });
-
     const delbtn = document.getElementById('delbtn');
     const delmsg = document.getElementById('delmsg');
     delbtn?.addEventListener('click', async () => {
@@ -171,7 +157,7 @@ const whenLabel =
     .label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 6px; }
     .linkbox { display: flex; gap: 8px; margin-bottom: 20px; }
     .linkbox input { flex: 1; font-family: ui-monospace, monospace; font-size: 13px; }
-    .qr { display: block; margin: 0 auto 20px; border-radius: 12px; border: 1px solid var(--border); background: #fff; padding: 8px; }
+    .share { margin-bottom: 24px; }
     .open { margin-bottom: 40px; }
     .edit { border-top: 1px solid var(--border); padding-top: 24px; margin-bottom: 40px; }
     .edit h2 { font-size: 16px; margin: 0 0 16px; }

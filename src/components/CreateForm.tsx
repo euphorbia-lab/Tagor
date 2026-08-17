@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import QRCode from 'qrcode';
 import LocationPicker, { type LocationValue } from './LocationPicker';
 import DateTimeField from './DateTimeField';
+import ShareActions from './ShareActions';
 
 declare global {
   interface Window {
@@ -106,7 +106,6 @@ export default function CreateForm({ lang, siteKey, siteUrl }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<CreateResult | null>(null);
-  const [qr, setQr] = useState('');
   const [copied, setCopied] = useState<'view' | 'manage' | null>(null);
 
   const widgetEl = useRef<HTMLDivElement>(null);
@@ -137,13 +136,6 @@ export default function CreateForm({ lang, siteKey, siteUrl }: Props) {
       render();
     }
   }, [siteKey]);
-
-  // Build the QR once we have a result.
-  useEffect(() => {
-    if (result) {
-      QRCode.toDataURL(result.viewUrl, { margin: 1, width: 220 }).then(setQr).catch(() => setQr(''));
-    }
-  }, [result]);
 
   function toISO(local: string): string {
     // "YYYY-MM-DDTHH:MM" local, or "YYYY-MM-DD" for all-day (anchor at midday
@@ -210,22 +202,16 @@ export default function CreateForm({ lang, siteKey, siteUrl }: Props) {
   }
 
   if (result) {
+    const dateLabel = new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'es-ES', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }).format(new Date(toISO(start)));
     return (
       <div className="cf-done">
         <h1>{t.done}</h1>
 
-        <p className="muted">{t.shareIntro}</p>
-        <div className="cf-linkrow">
-          <span className="cf-linklabel">{t.viewLabel}</span>
-          <div className="cf-linkbox">
-            <input readOnly value={result.viewUrl} onFocus={(e) => e.currentTarget.select()} />
-            <button className="btn" type="button" onClick={() => copy(result.viewUrl, 'view')}>
-              {copied === 'view' ? t.copied : t.copy}
-            </button>
-          </div>
-        </div>
-
-        {qr && <img className="cf-qr" src={qr} alt="QR" width={200} height={200} />}
+        <ShareActions viewUrl={result.viewUrl} title={title.trim()} dateLabel={dateLabel} lang={lang} />
 
         <div className="cf-manage">
           <span className="cf-linklabel">{t.manageLabel}</span>
