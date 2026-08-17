@@ -97,13 +97,16 @@ const calendarUrl = buildGoogleCalendarUrl({
   location: event.locationText,
 });
 
-const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).toString();
+const origin = Astro.site ?? Astro.url.origin;
+const canonical = new URL(Astro.url.pathname, origin).toString();
+const ogImage = new URL(`/qr/${slug}.png`, origin).toString();
 ---
 
 <BaseLayout
   title={`${event.title} · Tagor`}
   description={event.description ?? `${dateLabel} · ${event.locationText}`}
   canonical={canonical}
+  ogImage={ogImage}
   noindex={true}
   lang={lang}
 >
