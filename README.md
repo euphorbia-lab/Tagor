@@ -1,40 +1,65 @@
 # Tagor
 
-**Announce one event. Share it as a link + QR. That's it.**
+**Create an event. Share one link. That's it.**
 
-No accounts, no public list, no app. Create an event, get a private link and a QR,
-share them anywhere, and whoever opens it sees a clean page with the when, the where,
-and a map. Events auto-delete after they happen. Fully open source.
+No accounts, no public list, no app. You make an event, you get a private link and a QR,
+you share them wherever you like. Whoever opens the link sees a clean page with the when,
+the where, a map and your photos. The event deletes itself after it happens.
 
-> Tagor announces a decision; it doesn't help a group make one. If you need "when is
-> everyone free?", that's a different tool.
+The event is encrypted in your browser before it is sent, and the key travels in the link
+itself. The server stores something it cannot read.
 
-## What makes it private & secure
+> Tagor announces a decision. It does not help a group make one. If you need
+> "when is everyone free?", that is a different tool.
 
-- **No accounts.** The creator gets a secret *manage* link; everyone else gets a *view* link + QR.
-- **No discovery.** Unguessable slugs and `noindex` — the only way to an event is its link.
-- **Clients can't touch the database.** Row Level Security blocks all direct table access.
-  Reads go through one narrow function (`get_event(slug)`) that never returns the manage
-  token; writes happen server-side only.
-- **Bot + abuse protection.** Cloudflare Turnstile and a per-IP rate limit on creation
-  (the rate limiter stores only a salted hash of the IP, never the address).
-- **Ephemeral.** Events delete themselves about 14 days after they happen.
-- **No cookies**, only anonymous aggregate analytics.
+## How the privacy actually works
 
-Where to verify this yourself: the database rules live in [`supabase/migrations/`](./supabase/migrations),
-the server endpoints in [`src/pages/api/`](./src/pages/api), and the plain-language version
-is on the in-app `/legal` page.
+Most apps ask you to trust a promise. This one is built so the promise is hard to break.
+
+**The key never reaches the server.** When you create an event, your browser generates an
+AES-GCM key, encrypts the title, place, description, coordinates and photos, and sends only
+the ciphertext. The key is put in the part of the link after the `#`. Browsers never send
+that part in a request, so it cannot appear in our logs, our database or our backups.
+
+**What we can still see.** The start and end dates, the all-day flag, the language, the
+slug, the manage token, and how many photos there are. The dates have to stay readable
+because the job that deletes expired events needs to know when they expired. Everything a
+reader would care about is not readable by us.
+
+**What that costs.** Lose the link and the event is gone for good, including for us. Link
+previews in chat apps show a generic card and the date, never the title, because the server
+has nothing to put there. The event page needs JavaScript.
+
+**Photos.** Encrypted with the same key. Before encryption the browser re-encodes each
+photo through a canvas, which drops the metadata cameras attach, including GPS
+coordinates. They are stored in a public bucket, which is fine: without the key the bytes
+are noise.
+
+**Everything else.** Unguessable slugs and `noindex`, so there is no discovery and no
+public list. Row Level Security blocks all direct database access from clients; reads go
+through one narrow function that never returns the manage token, and writes happen
+server-side only. Cloudflare Turnstile plus a per-IP rate limit on creation, and the rate
+limiter stores only a salted hash of the IP, never the address. No cookies, only anonymous
+aggregate analytics.
+
+**Deletion is real deletion.** Deleting an event removes its photos through the Storage
+API first, then hard-deletes the row. Expiry does the same on a daily job. Nothing is
+marked hidden and left behind.
+
+To check any of this yourself: the database rules are in [`supabase/migrations/`](./supabase/migrations),
+the crypto is about sixty lines in [`src/lib/crypto.ts`](./src/lib/crypto.ts), the server
+endpoints are in [`src/pages/api/`](./src/pages/api), and the plain-language version is on
+the in-app `/legal` page.
 
 ## Stack
 
-- **Astro** — site and server-rendered pages (per-event Open Graph meta for link previews).
-- **Supabase** — Postgres + Row Level Security.
-- **Leaflet + CartoDB tiles** — map.
-- **Photon** — address search (OpenStreetMap, Canary-tuned).
-- **Netlify** — hosting.
-- **Cloudflare Turnstile** — bot check.
-
-Full product spec and data model: [SPEC.md](./SPEC.md).
+- **Astro** for the site and the server-rendered shells.
+- **Supabase** for Postgres, Row Level Security, file storage and the scheduled cleanup.
+- **Leaflet** with OpenStreetMap tiles for the map. Dark mode is a CSS filter, since there
+  is no dark OSM style.
+- **Photon** for address search.
+- **Netlify** for hosting.
+- **Cloudflare Turnstile** for the bot check.
 
 ## Development
 
@@ -48,18 +73,29 @@ npm run dev
 
 ```
 src/
-  layouts/     Base HTML shell (dark/light, meta tags)
-  pages/       Routes (ES at /, EN under /en); api/ = server endpoints
-  components/   React islands (form, map picker, ...)
-  lib/geo/     Photon geocoder + Canary island data
-  i18n/        es / en strings
-  styles/      global tokens
-supabase/migrations/   database schema, RLS, and cleanup job
+  lib/crypto.ts        encrypt and decrypt, key to and from the URL fragment
+  lib/images.ts        resize, re-encode (drops EXIF), encrypt
+  lib/event.ts         shared types; what the server validates vs the browser
+  pages/               routes. ES at /, EN under /en
+  pages/e/[slug]       the event page: a shell that decrypts in the browser
+  pages/m/[token]      the manage page, reached only with the secret link
+  pages/api/           create, update, delete, upload images
+  components/          React islands: forms, map, gallery, share
+  i18n/                strings for the home and create pages
+supabase/
+  migrations/          schema, RLS, and the scheduled purge
+  functions/           the purge job, which deletes storage as well as rows
 ```
+
+Two notes that are easy to trip over. Event and form strings live next to their components
+rather than in `i18n/`, because each island is self-contained and splitting them made it
+easy to miss one. And the purge runs as a function rather than plain SQL because Supabase
+blocks direct deletion from storage tables, so a SQL-only job would delete rows and
+silently orphan every photo.
 
 ## Support
 
-Free and open source (MIT). If it's useful, you can support the hosting:
+Free and open source (MIT). If it is useful, you can support the hosting:
 
 - GitHub Sponsors: _TODO_
 - Ko-fi: _TODO_

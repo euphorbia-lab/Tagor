@@ -1,5 +1,9 @@
-// Minimal i18n dictionary for Tagor. ES is the default; EN is the toggle.
-// Grows as pages are built. Keep keys flat and obvious.
+// Strings for the marketing pages (home, create page title). ES is the
+// default; EN is the toggle.
+//
+// Event, manage and form strings deliberately live next to their components
+// instead of here: each is a self-contained React island with its own es/en
+// pair, and splitting them across two places made it easy to miss one.
 
 export const languages = {
   es: 'Español',
@@ -12,43 +16,29 @@ export const defaultLang: Lang = 'es';
 export const ui = {
   es: {
     'site.tagline': 'Crea un evento. Comparte un enlace. Ya está.',
+    // Also used as the meta description and in the structured data, so it is
+    // kept under ~160 characters to survive in search results.
     'site.description':
-      'Sin cuentas, sin listas públicas. Crea un evento, comparte el enlace o el QR, y se abre en una página limpia con mapa. Se borra solo cuando pasa.',
+      'Sin cuentas ni listas públicas. El evento se cifra en tu navegador, comparte el enlace o el QR, y se borra solo cuando pasa.',
     'nav.create': 'Crear evento',
-    'how.title': 'Cómo funciona',
     'how.1': 'Nadie encuentra tu evento sin el enlace.',
-    'how.2': 'Sin cuentas, sin trackeo.',
-    'how.3': 'Comparte los detalles necesarios, fácil y en privado.',
-    'how.4': 'Se borra solo, unos 14 días después del evento.',
-    'event.when': 'Cuándo',
-    'event.where': 'Dónde',
-    'event.details': 'Más detalles',
-    'event.hostedBy': 'Organiza',
-    'event.addToCalendar': 'Añadir al calendario',
-    'event.directions': 'Cómo llegar',
-    'event.moreInfo': 'Más información',
+    'how.2': 'Se cifra en tu navegador: ni nosotros podemos leerlo.',
+    'how.3': 'Sin cuentas, sin cookies, sin trackeo.',
+    'how.4': 'Hasta 3 fotos, sin los datos de ubicación de la cámara.',
+    'how.5': 'Se borra solo, unos 14 días después del evento.',
     'create.title': 'Crear un evento',
-    'create.soon': 'El formulario de creación llega pronto.',
   },
   en: {
     'site.tagline': 'Make an event. Share one link. Done.',
     'site.description':
-      'No accounts, no public lists. Create an event, share the link or QR, and it opens as a clean page with a map. It deletes itself once it is over.',
+      'No accounts, no public lists. Your event is encrypted in your browser, share the link or the QR, and it deletes itself once it is over.',
     'nav.create': 'Create event',
-    'how.title': 'How it works',
     'how.1': 'No one finds your event without the link.',
-    'how.2': 'No accounts, no tracking.',
-    'how.3': 'Share just the details that matter, easily and privately.',
-    'how.4': 'Deletes itself about 14 days after the event.',
-    'event.when': 'When',
-    'event.where': 'Where',
-    'event.details': 'More details',
-    'event.hostedBy': 'Hosted by',
-    'event.addToCalendar': 'Add to calendar',
-    'event.directions': 'Get directions',
-    'event.moreInfo': 'More info',
+    'how.2': 'Encrypted in your browser, so not even we can read it.',
+    'how.3': 'No accounts, no cookies, no tracking.',
+    'how.4': 'Up to 3 photos, with the camera location data stripped out.',
+    'how.5': 'Deletes itself about 14 days after the event.',
     'create.title': 'Create an event',
-    'create.soon': 'The create form is coming soon.',
   },
 } as const;
 

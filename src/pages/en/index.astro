@@ -19,9 +19,11 @@ const jsonLd = {
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
   featureList: [
     'Create an event and share it as a private link or QR code',
+    'End-to-end encrypted: the key travels in the link and the server cannot read the event',
     'No accounts or sign-up required',
     'No public event list or search, access is link-only',
     'No user tracking or analytics',
+    'Up to 3 photos, encrypted and stripped of location metadata',
     'The event deletes itself automatically about 14 days later',
   ],
 };
@@ -58,6 +60,7 @@ const alternates = { es: '/', en: '/en/' };
         <li>{t('how.2')}</li>
         <li>{t('how.3')}</li>
         <li>{t('how.4')}</li>
+        <li>{t('how.5')}</li>
       </ul>
     </section>
 
