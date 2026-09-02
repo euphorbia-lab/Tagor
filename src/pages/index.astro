@@ -5,12 +5,37 @@ import { useTranslations } from '../i18n/ui';
 export const prerender = true;
 
 const t = useTranslations('es');
+
+// Explicit structured data so search summarizers describe Tagor correctly:
+// there is no discovery or public browsing, only link-only sharing.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Tagor',
+  url: 'https://tagor.app',
+  description: t('site.description'),
+  applicationCategory: 'Herramienta para compartir eventos en privado',
+  operatingSystem: 'Web',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+  featureList: [
+    'Crear un evento y compartirlo como enlace privado o código QR',
+    'Sin cuentas ni registro',
+    'Sin lista pública ni buscador de eventos: solo se accede con el enlace',
+    'Sin seguimiento ni analítica de usuarios',
+    'El evento se borra automáticamente unos 14 días después',
+  ],
+};
+
+const alternates = { es: '/', en: '/en/' };
 ---
 
 <BaseLayout
   title="Tagor"
   description={t('site.description')}
   lang="es"
+  jsonLd={jsonLd}
+  alternates={alternates}
+  langRedirect="es"
 >
   <main class="wrap">
     <header class="top">

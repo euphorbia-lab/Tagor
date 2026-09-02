@@ -14,6 +14,15 @@ export interface Props {
   /** Set true on private event pages so search engines never index them. */
   noindex?: boolean;
   lang?: string;
+  /** Structured data object, rendered as a JSON-LD <script> tag. */
+  jsonLd?: Record<string, unknown>;
+  /** Path to the ES and EN version of this same page, for hreflang alternates. Omit on pages with no translated counterpart (event/manage/create pages). */
+  alternates?: { es: string; en: string };
+  /** Set only on the two homepage variants (es: '/', en: '/en/'). Detects the
+   * visitor's browser language once and redirects a non-Spanish visitor from
+   * the Spanish homepage to the English one. A stored preference means we
+   * never redirect the same visitor twice, and never fight manual navigation. */
+  langRedirect?: 'es' | 'en';
 }
 
 const {
@@ -23,12 +32,19 @@ const {
   canonical,
   noindex = false,
   lang = 'es',
+  jsonLd,
+  alternates,
+  langRedirect,
 } = Astro.props;
 
 // Always emit an explicit og:image (falls back to the logo) — scrapers that
 // find none will otherwise guess, which can pick an awkward image on the page.
 const origin = Astro.site ?? Astro.url.origin;
-const resolvedOgImage = ogImage ?? new URL('/logo.png', origin).toString();
+const resolvedOgImage = ogImage ?? new URL('/og-image.png', origin).toString();
+// Event pages pass the per-event QR (qr/[slug].png.ts, always 640x640);
+// everything else falls back to the social card (public/og-image.png, 1200x630).
+const ogImageWidth = ogImage ? 640 : 1200;
+const ogImageHeight = ogImage ? 640 : 630;
 ---
 
 <!doctype html>
@@ -37,8 +53,12 @@ const resolvedOgImage = ogImage ?? new URL('/logo.png', origin).toString();
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#f5f5f3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0f11" media="(prefers-color-scheme: dark)" />
     {/* Critical: set canvas color + background before external CSS loads, so
         navigating between pages never flashes a white/unstyled frame. */}
     <style is:inline>
@@ -53,15 +73,46 @@ const resolvedOgImage = ogImage ?? new URL('/logo.png', origin).toString();
     {description && <meta name="description" content={description} />}
     {canonical && <link rel="canonical" href={canonical} />}
     {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {alternates && (
+      <>
+        <link rel="alternate" hreflang="es" href={new URL(alternates.es, origin).toString()} />
+        <link rel="alternate" hreflang="en" href={new URL(alternates.en, origin).toString()} />
+        <link rel="alternate" hreflang="x-default" href={new URL(alternates.es, origin).toString()} />
+      </>
+    )}
 
     {/* Open Graph - rendered server-side so social scrapers see real meta. */}
     <meta property="og:title" content={title} />
     {description && <meta property="og:description" content={description} />}
     <meta property="og:image" content={resolvedOgImage} />
+    <meta property="og:image:width" content={ogImageWidth.toString()} />
+    <meta property="og:image:height" content={ogImageHeight.toString()} />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={resolvedOgImage} />
+
+    {jsonLd && (
+      <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    )}
+
+    {langRedirect && (
+      <script is:inline define:vars={{ langRedirect }}>
+        (() => {
+          try {
+            const stored = localStorage.getItem('tagor-lang');
+            if (stored) return;
+            const prefersSpanish = (navigator.language || '').toLowerCase().startsWith('es');
+            if (langRedirect === 'es' && !prefersSpanish) {
+              localStorage.setItem('tagor-lang', 'en');
+              location.replace('/en/');
+              return;
+            }
+            localStorage.setItem('tagor-lang', langRedirect);
+          } catch (_) {}
+        })();
+      </script>
+    )}
 
     {/* No-flash theme init: honor stored preference before first paint. */}
     <script is:inline>

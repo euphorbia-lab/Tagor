@@ -11,9 +11,16 @@ interface EventMapProps {
   title: string;
   /** Radius in meters for 'area' mode. */
   areaRadius?: number;
+  /** Page language for the action button label. Defaults to 'es'. */
+  lang?: string;
 }
 
 const ACCENT = '#c8452f';
+
+const LABELS = {
+  es: { directions: 'Cómo llegar', openMaps: 'Abrir en el mapa' },
+  en: { directions: 'Get directions', openMaps: 'Open in maps' },
+} as const;
 
 function isDark(): boolean {
   if (typeof document === 'undefined') return false;
@@ -27,7 +34,8 @@ function isDark(): boolean {
  * Static (non-interactive) map preview using Leaflet + free CartoDB tiles.
  * Salvaged and simplified from the original Tagor EventLocationMap.
  */
-export default function EventMap({ lat, lng, mode, title, areaRadius = 500 }: EventMapProps) {
+export default function EventMap({ lat, lng, mode, title, areaRadius = 500, lang = 'es' }: EventMapProps) {
+  const labels = lang === 'en' ? LABELS.en : LABELS.es;
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
 
@@ -139,7 +147,7 @@ export default function EventMap({ lat, lng, mode, title, areaRadius = 500 }: Ev
         className="btn tagor-map__btn"
         onClick={isPoint ? openDirections : openInMaps}
       >
-        {isPoint ? 'Cómo llegar' : 'Abrir en el mapa'}
+        {isPoint ? labels.directions : labels.openMaps}
       </button>
       <style>{`
         .tagor-map { margin-top: 12px; }

@@ -5,9 +5,38 @@ import { useTranslations } from '../../i18n/ui';
 export const prerender = true;
 
 const t = useTranslations('en');
+
+// Explicit structured data so search summarizers describe Tagor correctly:
+// there is no discovery or public browsing, only link-only sharing.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Tagor',
+  url: 'https://tagor.app/en/',
+  description: t('site.description'),
+  applicationCategory: 'Private event sharing tool',
+  operatingSystem: 'Web',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+  featureList: [
+    'Create an event and share it as a private link or QR code',
+    'No accounts or sign-up required',
+    'No public event list or search, access is link-only',
+    'No user tracking or analytics',
+    'The event deletes itself automatically about 14 days later',
+  ],
+};
+
+const alternates = { es: '/', en: '/en/' };
 ---
 
-<BaseLayout title="Tagor" description={t('site.description')} lang="en">
+<BaseLayout
+  title="Tagor"
+  description={t('site.description')}
+  lang="en"
+  jsonLd={jsonLd}
+  alternates={alternates}
+  langRedirect="en"
+>
   <main class="wrap">
     <header class="top">
       <img src="/logo.png" alt="Tagor" class="logo" />

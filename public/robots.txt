@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /en/
+Allow: /nuevo
+Allow: /en/nuevo
+Allow: /legal
+Allow: /en/legal
+Disallow: /e/
+Disallow: /m/
+Disallow: /api/
+Disallow: /qr/
+
+Sitemap: https://tagor.app/sitemap.xml

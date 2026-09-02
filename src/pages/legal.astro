@@ -3,9 +3,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import LegalContent from '../components/LegalContent.astro';
 
 export const prerender = true;
+
+const alternates = { es: '/legal', en: '/en/legal' };
 ---
 
-<BaseLayout title="Privacidad y aviso legal · Tagor" lang="es">
+<BaseLayout title="Privacidad y aviso legal · Tagor" lang="es" alternates={alternates}>
   <main class="wrap">
     <a href="/" class="muted back">← Tagor</a>
     <h1>Privacidad y aviso legal</h1>
