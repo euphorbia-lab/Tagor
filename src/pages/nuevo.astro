@@ -15,7 +15,7 @@ const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? Astro.url.origin;
   <main class="wrap">
     <a href="/" class="muted back">← Tagor</a>
     <h1>{t('create.title')}</h1>
-    <CreateForm client:load lang="es" siteKey={siteKey} siteUrl={siteUrl} />
+    <CreateForm client:only="react" lang="es" siteKey={siteKey} siteUrl={siteUrl} />
   </main>
 
   <style>
