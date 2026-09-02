@@ -38,6 +38,37 @@ export default function PhotoGallery({ urls, lang }: Props) {
   const [expanded, setExpanded] = useState<number | null>(null);
   const many = urls.length > 1;
 
+  const step = (delta: number) =>
+    setExpanded((i) => (i === null ? i : (i + delta + urls.length) % urls.length));
+
+  // Swipe between photos while expanded. `swiped` stops the gesture from also
+  // registering as a backdrop tap, which would close the lightbox mid-swipe.
+  const touchX = useRef<number | null>(null);
+  const swiped = useRef(false);
+
+  function onTouchStart(e: React.TouchEvent) {
+    touchX.current = e.touches[0].clientX;
+    swiped.current = false;
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    const from = touchX.current;
+    touchX.current = null;
+    if (from === null || !many) return;
+    const dx = e.changedTouches[0].clientX - from;
+    if (Math.abs(dx) < 40) return;
+    swiped.current = true;
+    step(dx < 0 ? 1 : -1);
+  }
+
+  function onBackdropClick() {
+    if (swiped.current) {
+      swiped.current = false;
+      return;
+    }
+    setExpanded(null);
+  }
+
   // Track which slide is centred, for the dots.
   function onScroll() {
     const el = trackRef.current;
@@ -60,10 +91,8 @@ export default function PhotoGallery({ urls, lang }: Props) {
 
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setExpanded(null);
-      if (e.key === 'ArrowRight') setExpanded((i) => (i === null ? i : (i + 1) % urls.length));
-      if (e.key === 'ArrowLeft') {
-        setExpanded((i) => (i === null ? i : (i - 1 + urls.length) % urls.length));
-      }
+      if (e.key === 'ArrowRight') step(1);
+      if (e.key === 'ArrowLeft') step(-1);
     }
     window.addEventListener('keydown', onKey);
     return () => {
@@ -116,7 +145,9 @@ export default function PhotoGallery({ urls, lang }: Props) {
           className="pg__lightbox"
           role="dialog"
           aria-modal="true"
-          onClick={() => setExpanded(null)}
+          onClick={onBackdropClick}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
         >
           <img src={urls[expanded]} alt="" onClick={(e) => e.stopPropagation()} />
 
@@ -137,7 +168,7 @@ export default function PhotoGallery({ urls, lang }: Props) {
                 aria-label={t.prev}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setExpanded((i) => (i === null ? i : (i - 1 + urls.length) % urls.length));
+                  step(-1);
                 }}
               >
                 ‹
@@ -148,7 +179,7 @@ export default function PhotoGallery({ urls, lang }: Props) {
                 aria-label={t.next}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setExpanded((i) => (i === null ? i : (i + 1) % urls.length));
+                  step(1);
                 }}
               >
                 ›
@@ -192,31 +223,44 @@ export default function PhotoGallery({ urls, lang }: Props) {
         }
         .pg__dot.is-on { background: var(--accent); }
 
+        /* Above Leaflet, whose own panes and controls climb to z-index 1000.
+           At 100 the map drew straight over the expanded photo. */
         .pg__lightbox {
-          position: fixed; inset: 0; z-index: 100;
-          background: rgba(0, 0, 0, 0.92);
+          position: fixed; inset: 0; z-index: 9999;
+          background: rgba(0, 0, 0, 0.94);
           display: flex; align-items: center; justify-content: center;
           padding: 16px; cursor: zoom-out;
+          touch-action: pan-y;
         }
         .pg__lightbox img {
           max-width: 100%; max-height: 100%;
           object-fit: contain; cursor: default;
+          user-select: none; -webkit-user-drag: none;
+        }
+        .pg__close, .pg__nav {
+          position: absolute; z-index: 1;
+          display: flex; align-items: center; justify-content: center;
+          border: none; color: #fff; cursor: pointer;
+          background: rgba(0, 0, 0, 0.45);
+          backdrop-filter: blur(2px);
+          border-radius: 50%;
         }
         .pg__close {
-          position: absolute; top: 12px; right: 14px;
-          background: none; border: none; color: #fff;
-          font-size: 26px; line-height: 1; cursor: pointer; padding: 6px;
+          top: 12px; right: 12px;
+          width: 40px; height: 40px; font-size: 20px; line-height: 1;
         }
+        /* Big enough to hit with a thumb, and legible over a bright photo. */
         .pg__nav {
-          position: absolute; top: 50%; transform: translateY(-50%);
-          background: none; border: none; color: #fff;
-          font-size: 44px; line-height: 1; cursor: pointer; padding: 8px 14px;
+          top: 50%; transform: translateY(-50%);
+          width: 48px; height: 48px; font-size: 32px; line-height: 1;
+          padding-bottom: 4px;
         }
-        .pg__nav--prev { left: 2px; }
-        .pg__nav--next { right: 2px; }
+        .pg__nav--prev { left: 10px; }
+        .pg__nav--next { right: 10px; }
         .pg__count {
-          position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+          position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
           color: #fff; font-size: 13px; opacity: 0.85;
+          background: rgba(0, 0, 0, 0.45); padding: 4px 10px; border-radius: 999px;
         }
       `}</style>
     </div>

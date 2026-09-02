@@ -94,16 +94,21 @@ export default function EventMap({ lat, lng, mode, title, areaRadius = 500, lang
     };
   }, [lat, lng, mode, areaRadius, title]);
 
+  // On phones, hand the coordinates to the OS and let it pick: the default maps
+  // app, or the app chooser when there is more than one. There is deliberately
+  // no web fallback here. The old timed fallback fired even when the app did
+  // open, so you got the chooser and the website at the same time.
+  const ua = () => navigator.userAgent.toLowerCase();
+  const isIOS = () => /iphone|ipad|ipod/.test(ua());
+  const isAndroid = () => /android/.test(ua());
+
   // Turn-by-turn directions to an exact spot (precise-point mode).
   const openDirections = () => {
-    const ua = navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/.test(ua)) {
+    const label = encodeURIComponent(title);
+    if (isIOS()) {
       window.location.href = `maps://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`;
-    } else if (/android/.test(ua)) {
-      window.location.href = `google.navigation:q=${lat},${lng}`;
-      setTimeout(() => {
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
-      }, 800);
+    } else if (isAndroid()) {
+      window.location.href = `geo:${lat},${lng}?q=${lat},${lng}(${label})`;
     } else {
       window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
     }
@@ -111,15 +116,11 @@ export default function EventMap({ lat, lng, mode, title, areaRadius = 500, lang
 
   // Open the location in the user's maps app without directions (approximate-area mode).
   const openInMaps = () => {
-    const ua = navigator.userAgent.toLowerCase();
     const label = encodeURIComponent(title);
-    if (/iphone|ipad|ipod/.test(ua)) {
+    if (isIOS()) {
       window.location.href = `maps://maps.apple.com/?ll=${lat},${lng}&q=${label}`;
-    } else if (/android/.test(ua)) {
+    } else if (isAndroid()) {
       window.location.href = `geo:${lat},${lng}?q=${lat},${lng}(${label})`;
-      setTimeout(() => {
-        window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
-      }, 800);
     } else {
       window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
     }
