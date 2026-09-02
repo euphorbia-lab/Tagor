@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getServiceClient } from '../../lib/supabase';
-import { validateCreateInput, computeExpiry, type CreateEventInput } from '../../lib/event';
+import { validateMeta, computeExpiry, type RawMeta } from '../../lib/event';
 import { newViewSlug, newManageToken } from '../../lib/ids';
 
 export const prerender = false;
@@ -41,7 +41,7 @@ async function hashIp(ip: string): Promise<string> {
 }
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
-  let raw: CreateEventInput & { turnstileToken?: string };
+  let raw: RawMeta & { turnstileToken?: string };
   try {
     raw = await request.json();
   } catch {
@@ -54,8 +54,9 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json({ error: 'Bot check failed. Please retry.' }, 403);
   }
 
-  // 2. Validate + normalize (mirrors the DB constraints).
-  const result = validateCreateInput(raw);
+  // 2. Validate what we can still see. The event's content arrives already
+  //    encrypted, so only the metadata and the blob's size are checkable here.
+  const result = validateMeta(raw);
   if (!result.ok) return json({ error: result.error }, 400);
   const ev = result.value;
 
@@ -84,18 +85,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const { error } = await supabase.from('events').insert({
     view_slug,
     manage_token,
-    title: ev.title,
+    payload: ev.payload,
     start_at: ev.start_at,
     end_at: ev.end_at,
     all_day: ev.all_day,
-    location_text: ev.location_text,
-    map_mode: ev.map_mode,
-    lat: ev.lat,
-    lng: ev.lng,
-    area_radius: ev.area_radius,
-    description: ev.description,
-    hosted_by: ev.hosted_by,
-    external_url: ev.external_url,
     lang: ev.lang,
     expires_at,
   });
@@ -108,6 +101,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     await supabase.from('create_log').insert({ ip_hash: ipHash });
   }
 
+  // These URLs are deliberately keyless. The browser appends the decryption
+  // key as a '#' fragment, which is the part the server must never receive.
   const base = import.meta.env.PUBLIC_SITE_URL || new URL(request.url).origin;
   return json(
     {

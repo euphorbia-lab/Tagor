@@ -20,10 +20,21 @@ const CONTACT = 'hola@euphorbialab.com';
           visits. It does not identify anyone or track you across sites.
         </li>
         <li>
+          Event content is encrypted in your browser before it is sent. The decryption key lives
+          only in the link, in the part after the "#", which browsers never send to a server. We
+          store the encrypted result and cannot read your event: not its title, place, description
+          or map position. Only the date and language stay readable, because the automatic deletion
+          needs them.
+        </li>
+        <li>
           Events you create are stored temporarily (until about 14 days after the event date) on
           Supabase (EU servers), then deleted automatically.
         </li>
-        <li>The private manage link is the only way to edit or delete your event. Keep it safe.</li>
+        <li>
+          The private manage link is the only way to edit or delete your event, and the link is also
+          the only copy of the key. Keep it safe: if you lose it, nobody, including us, can recover
+          the event.
+        </li>
         <li>We never sell or share your data.</li>
       </ul>
 
@@ -35,7 +46,9 @@ const CONTACT = 'hola@euphorbialab.com';
           responsibility for it. <strong>Created with Tagor, not by Tagor.</strong>
         </li>
         <li>
-          If you see illegal or abusive content, contact us: <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
+          If you see illegal or abusive content, contact us with the link:{' '}
+          <a href={`mailto:${CONTACT}`}>{CONTACT}</a>. Because event content is encrypted, we cannot
+          read a reported event, only delete it.
         </li>
         <li>The service is provided "as is", with no guarantee of availability.</li>
         <li>
@@ -57,12 +70,21 @@ const CONTACT = 'hola@euphorbialab.com';
           visitas. No identifican a nadie ni te siguen entre webs.
         </li>
         <li>
+          El contenido del evento se cifra en tu navegador antes de enviarse. La clave para
+          descifrarlo vive solo en el enlace, en la parte que va después de la «#», que los
+          navegadores nunca envían a ningún servidor. Nosotros guardamos el resultado cifrado y no
+          podemos leer tu evento: ni el título, ni el lugar, ni la descripción, ni la posición en el
+          mapa. Solo la fecha y el idioma quedan legibles, porque el borrado automático los
+          necesita.
+        </li>
+        <li>
           Los eventos que creas se guardan de forma temporal (hasta unos 14 días después de la
           fecha del evento) en Supabase (servidores en la UE), y luego se borran automáticamente.
         </li>
         <li>
-          El enlace privado de gestión es la única forma de editar o borrar tu evento. Guárdalo
-          bien.
+          El enlace privado de gestión es la única forma de editar o borrar tu evento, y además es
+          la única copia de la clave. Guárdalo bien: si lo pierdes, nadie, tampoco nosotros, puede
+          recuperar el evento.
         </li>
         <li>Nunca vendemos ni compartimos tus datos.</li>
       </ul>
@@ -75,7 +97,9 @@ const CONTACT = 'hola@euphorbialab.com';
           lo avalamos, ni nos hacemos responsables de él. <strong>Creado con Tagor, no por Tagor.</strong>
         </li>
         <li>
-          Si ves contenido ilegal o abusivo, escríbenos: <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
+          Si ves contenido ilegal o abusivo, escríbenos con el enlace:{' '}
+          <a href={`mailto:${CONTACT}`}>{CONTACT}</a>. Como el contenido está cifrado, no podemos
+          leer un evento denunciado, solo borrarlo.
         </li>
         <li>El servicio se ofrece "tal cual", sin garantía de disponibilidad.</li>
         <li>

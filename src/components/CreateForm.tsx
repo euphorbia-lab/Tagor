@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import LocationPicker, { type LocationValue } from './LocationPicker';
 import DateTimeField from './DateTimeField';
 import ShareActions from './ShareActions';
+import { generateKey, exportKey, encryptJson } from '../lib/crypto';
+import { validateContent } from '../lib/event';
 
 declare global {
   interface Window {
@@ -153,21 +155,34 @@ export default function CreateForm({ lang, siteKey, siteUrl }: Props) {
     if (!locationText.trim()) return setError(t.reqLoc);
     if (!token) return setError(t.reqBot);
 
+    // Content rules are enforced here, because the server cannot read the
+    // event once it is encrypted.
+    const content = validateContent({
+      title,
+      location_text: locationText,
+      map_mode: loc.mapMode,
+      lat: loc.lat,
+      lng: loc.lng,
+      area_radius: loc.mapMode === 'area' ? loc.areaRadius : null,
+      description,
+      hosted_by: hostedBy,
+      external_url: externalUrl,
+    });
+    if (!content.ok) return setError(content.error);
+
     setSubmitting(true);
     try {
+      // Encrypt in the browser. The key stays here and goes into the link
+      // fragment below; the server only ever receives the blob.
+      const key = await generateKey();
+      const keyStr = await exportKey(key);
+      const payload = await encryptJson(content.value, key);
+
       const body = {
-        title: title.trim(),
+        payload,
         start_at: toISO(start),
         end_at: end ? toISO(end) : null,
         all_day: allDay,
-        location_text: locationText.trim(),
-        map_mode: loc.mapMode,
-        lat: loc.lat,
-        lng: loc.lng,
-        area_radius: loc.mapMode === 'area' ? loc.areaRadius : null,
-        description: description.trim() || null,
-        hosted_by: hostedBy.trim() || null,
-        external_url: externalUrl.trim() || null,
         lang,
         turnstileToken: token,
       };
@@ -182,7 +197,10 @@ export default function CreateForm({ lang, siteKey, siteUrl }: Props) {
         window.turnstile?.reset(widgetId.current ?? undefined);
         setToken('');
       } else {
-        setResult(data as CreateResult);
+        setResult({
+          viewUrl: `${data.viewUrl}#${keyStr}`,
+          manageUrl: `${data.manageUrl}#${keyStr}`,
+        });
       }
     } catch {
       setError(t.error);

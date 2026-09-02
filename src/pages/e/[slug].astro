@@ -1,24 +1,22 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import EventMap from '../../components/EventMap.tsx';
-import ShareActions from '../../components/ShareActions.tsx';
-import { buildGoogleCalendarUrl } from '../../lib/calendar';
+import EventView from '../../components/EventView.tsx';
 import { getReadClient } from '../../lib/supabase';
-import type { PublicEvent } from '../../lib/event';
+import type { StoredEvent } from '../../lib/event';
 
-// SSR (not prerendered) so Open Graph meta reflects THIS event for social scrapers.
+// SSR, but only for the shell: the content is encrypted and can only be read in
+// the browser, using the key from the URL fragment.
 export const prerender = false;
 
 const { slug } = Astro.params;
 
-// Read the event by its secret slug via the locked-down get_event RPC.
-let ev: PublicEvent | null = null;
+let ev: StoredEvent | null = null;
 if (slug) {
   const { data, error } = await getReadClient().rpc('get_event', { p_slug: slug });
   if (error) {
     console.error('get_event failed:', error.message);
   } else if (Array.isArray(data) && data.length > 0) {
-    ev = data[0] as PublicEvent;
+    ev = data[0] as StoredEvent;
   }
 }
 
@@ -31,144 +29,52 @@ const lang = ev.lang === 'en' ? 'en' : 'es';
 const L =
   lang === 'en'
     ? {
-        when: 'When',
-        where: 'Where',
-        details: 'More details',
-        hostedBy: 'Hosted by',
-        addCal: 'Add to calendar',
-        more: 'More info',
-        allDay: 'All day',
+        generic: 'A Tagor event',
         footMade: 'Made with',
         footHow: 'link-only, no accounts, self-deleting',
         footOss: 'open source',
         legal: 'Legal',
-        share: 'Share',
         disclaimer: 'Created with Tagor, not by Tagor. Tagor is not responsible for this event.',
         locale: 'en-GB',
       }
     : {
-        when: 'Cuándo',
-        where: 'Dónde',
-        details: 'Más detalles',
-        hostedBy: 'Organiza',
-        addCal: 'Añadir al calendario',
-        more: 'Más información',
-        allDay: 'Todo el día',
+        generic: 'Un evento en Tagor',
         footMade: 'Hecho con',
         footHow: 'solo con enlace, sin cuentas, se borra solo',
         footOss: 'código abierto',
         legal: 'Aviso legal',
-        share: 'Compartir',
         disclaimer: 'Creado con Tagor, no por Tagor. Tagor no se responsabiliza de este evento.',
         locale: 'es-ES',
       };
 
-// Map the RPC row into the shape the template uses.
-const event = {
-  title: ev.title,
-  locationText: ev.location_text,
-  mapMode: ev.map_mode,
-  lat: ev.lat,
-  lng: ev.lng,
-  areaRadius: ev.area_radius,
-  description: ev.description,
-  hostedBy: ev.hosted_by,
-  externalUrl: ev.external_url,
-  startISO: ev.start_at,
-  endISO: ev.end_at,
-};
-
-const start = new Date(event.startISO);
-const dateFmt = new Intl.DateTimeFormat(L.locale, {
+// The date is plaintext, so link previews can still say *when* something is on.
+// The title cannot appear here: the server has no way to decrypt it.
+const dateLabel = new Intl.DateTimeFormat(L.locale, {
   weekday: 'long',
   day: 'numeric',
   month: 'long',
-});
-const timeFmt = new Intl.DateTimeFormat(L.locale, { hour: '2-digit', minute: '2-digit' });
-
-const dateLabel = dateFmt.format(start);
-const timeLabel = ev.all_day ? L.allDay : timeFmt.format(start);
-
-const calendarUrl = buildGoogleCalendarUrl({
-  title: event.title,
-  startISO: event.startISO,
-  endISO: event.endISO ?? undefined,
-  details: event.description ?? '',
-  location: event.locationText,
-});
+}).format(new Date(ev.start_at));
 
 const origin = Astro.site ?? Astro.url.origin;
-const canonical = new URL(Astro.url.pathname, origin).toString();
-const ogImage = new URL(`/qr/${slug}.png`, origin).toString();
+const viewUrl = new URL(`/e/${slug}`, origin).toString();
 ---
 
 <BaseLayout
-  title={`${event.title} · Tagor`}
-  description={event.description ?? `${dateLabel} · ${event.locationText}`}
-  canonical={canonical}
-  ogImage={ogImage}
+  title={`${L.generic} · ${dateLabel}`}
+  description={`${L.generic} · ${dateLabel}`}
   noindex={true}
   lang={lang}
 >
   <main class="wrap">
-    <h1 class="title">{event.title}</h1>
-
-    <section class="block">
-      <h2 class="label">{L.when}</h2>
-      <p class="big" style="text-transform:capitalize">{dateLabel}</p>
-      <p class="muted">{timeLabel}</p>
-    </section>
-
-    <section class="block">
-      <h2 class="label">{L.where}</h2>
-      <p class="big">{event.locationText}</p>
-      {
-        event.mapMode !== 'none' && event.lat != null && event.lng != null && (
-          <EventMap
-            client:visible
-            lat={event.lat}
-            lng={event.lng}
-            mode={event.mapMode}
-            areaRadius={event.areaRadius ?? 500}
-            title={event.title}
-            lang={lang}
-          />
-        )
-      }
-    </section>
-
-    {
-      event.description && (
-        <section class="block">
-          <h2 class="label">{L.details}</h2>
-          <p class="body">{event.description}</p>
-        </section>
-      )
-    }
-
-    {
-      event.hostedBy && (
-        <p class="muted host">{L.hostedBy} · <strong>{event.hostedBy}</strong></p>
-      )
-    }
-
-    <div class="actions">
-      <a class="btn btn--primary" href={calendarUrl} target="_blank" rel="noopener"
-        >{L.addCal}</a
-      >
-      {
-        event.externalUrl && (
-          <a class="btn" href={event.externalUrl} target="_blank" rel="noopener noreferrer">
-            {L.more}
-          </a>
-        )
-      }
-    </div>
-
-    <section class="block share-block">
-      <h2 class="label">{L.share}</h2>
-      <ShareActions client:visible viewUrl={canonical} title={event.title} dateLabel={dateLabel} lang={lang} />
-    </section>
+    <EventView
+      client:load
+      payload={ev.payload}
+      start_at={ev.start_at}
+      end_at={ev.end_at}
+      all_day={ev.all_day}
+      lang={lang}
+      viewUrl={viewUrl}
+    />
 
     <footer class="foot muted">
       <p class="foot__disc">{L.disclaimer}</p>
@@ -179,40 +85,6 @@ const ogImage = new URL(`/qr/${slug}.png`, origin).toString();
   </main>
 
   <style>
-    .title {
-      font-size: clamp(26px, 6vw, 36px);
-      line-height: 1.12;
-      letter-spacing: -0.02em;
-      margin: 8px 0 36px;
-    }
-    .block {
-      margin-bottom: 32px;
-    }
-    .label {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin: 0 0 6px;
-    }
-    .big {
-      font-size: 19px;
-      font-weight: 600;
-      margin: 0 0 2px;
-    }
-    .body {
-      white-space: pre-wrap;
-      margin: 0;
-    }
-    .host {
-      margin: 0 0 24px;
-    }
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 48px;
-    }
     .foot {
       font-size: 13px;
       border-top: 1px solid var(--border);

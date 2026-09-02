@@ -41,8 +41,9 @@ const {
 // find none will otherwise guess, which can pick an awkward image on the page.
 const origin = Astro.site ?? Astro.url.origin;
 const resolvedOgImage = ogImage ?? new URL('/og-image.png', origin).toString();
-// Event pages pass the per-event QR (qr/[slug].png.ts, always 640x640);
-// everything else falls back to the social card (public/og-image.png, 1200x630).
+// Event pages can no longer show their own card: their content is encrypted,
+// so the server has nothing to render into one. Everything falls back to the
+// shared social card (public/og-image.png, 1200x630) unless a page overrides it.
 const ogImageWidth = ogImage ? 640 : 1200;
 const ogImageHeight = ogImage ? 640 : 630;
 ---

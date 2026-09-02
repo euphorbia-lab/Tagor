@@ -1,26 +1,21 @@
 import { useState } from 'react';
 import LocationPicker, { type LocationValue } from './LocationPicker';
 import DateTimeField from './DateTimeField';
+import { encryptJson } from '../lib/crypto';
+import { validateContent, type EventContent } from '../lib/event';
 
-interface InitialEvent {
-  title: string;
+interface InitialEvent extends EventContent {
   start_at: string;
   end_at: string | null;
   all_day: boolean;
-  location_text: string;
-  map_mode: 'none' | 'point' | 'area';
-  lat: number | null;
-  lng: number | null;
-  area_radius: number | null;
-  description: string | null;
-  hosted_by: string | null;
-  external_url: string | null;
 }
 
 interface Props {
   lang: 'es' | 'en';
   manageToken: string;
   initial: InitialEvent;
+  /** Decrypted by ManageView; reused here to re-encrypt on save. */
+  cryptoKey: CryptoKey;
 }
 
 const T = {
@@ -72,7 +67,7 @@ function toLocalInput(iso: string, dateOnly = false): string {
   return dateOnly ? date : `${date}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export default function EditForm({ lang, manageToken, initial }: Props) {
+export default function EditForm({ lang, manageToken, initial, cryptoKey }: Props) {
   const t = T[lang];
 
   const [title, setTitle] = useState(initial.title);
@@ -108,22 +103,30 @@ export default function EditForm({ lang, manageToken, initial }: Props) {
     if (!start) return setError(t.reqStart);
     if (!locationText.trim()) return setError(t.reqLoc);
 
+    const content = validateContent({
+      title,
+      location_text: locationText,
+      map_mode: loc.mapMode,
+      lat: loc.lat,
+      lng: loc.lng,
+      area_radius: loc.mapMode === 'area' ? loc.areaRadius : null,
+      description,
+      hosted_by: hostedBy,
+      external_url: externalUrl,
+    });
+    if (!content.ok) return setError(content.error);
+
     setSaving(true);
     try {
+      // Re-encrypt with the same key the link already carries, so existing
+      // shared links keep working after an edit.
+      const payload = await encryptJson(content.value, cryptoKey);
       const body = {
         manage_token: manageToken,
-        title: title.trim(),
+        payload,
         start_at: toISO(start),
         end_at: end ? toISO(end) : null,
         all_day: allDay,
-        location_text: locationText.trim(),
-        map_mode: loc.mapMode,
-        lat: loc.lat,
-        lng: loc.lng,
-        area_radius: loc.mapMode === 'area' ? loc.areaRadius : null,
-        description: description.trim() || null,
-        hosted_by: hostedBy.trim() || null,
-        external_url: externalUrl.trim() || null,
         lang,
       };
       const res = await fetch('/api/update-event', {

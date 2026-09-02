@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getServiceClient } from '../../lib/supabase';
-import { validateCreateInput, computeExpiry, type CreateEventInput } from '../../lib/event';
+import { validateMeta, computeExpiry, type RawMeta } from '../../lib/event';
 
 export const prerender = false;
 
@@ -13,7 +13,7 @@ function json(data: unknown, status: number): Response {
 
 // Update an event by its secret manage token. The token is the authorization.
 export const POST: APIRoute = async ({ request }) => {
-  let raw: CreateEventInput & { manage_token?: string };
+  let raw: RawMeta & { manage_token?: string };
   try {
     raw = await request.json();
   } catch {
@@ -23,7 +23,8 @@ export const POST: APIRoute = async ({ request }) => {
   const token = typeof raw.manage_token === 'string' ? raw.manage_token.trim() : '';
   if (!token) return json({ error: 'Missing manage token.' }, 400);
 
-  const result = validateCreateInput(raw);
+  // Content arrives re-encrypted by the browser; only metadata is checkable.
+  const result = validateMeta(raw);
   if (!result.ok) return json({ error: result.error }, 400);
   const ev = result.value;
 
@@ -45,18 +46,10 @@ export const POST: APIRoute = async ({ request }) => {
   const { error } = await supabase
     .from('events')
     .update({
-      title: ev.title,
+      payload: ev.payload,
       start_at: ev.start_at,
       end_at: ev.end_at,
       all_day: ev.all_day,
-      location_text: ev.location_text,
-      map_mode: ev.map_mode,
-      lat: ev.lat,
-      lng: ev.lng,
-      area_radius: ev.area_radius,
-      description: ev.description,
-      hosted_by: ev.hosted_by,
-      external_url: ev.external_url,
       lang: ev.lang,
       expires_at,
     })
