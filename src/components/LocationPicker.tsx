@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { searchAddress, type AddressResult } from '../lib/geo/search';
+import { TILE_URL, TILE_ATTRIBUTION, TILE_MAX_ZOOM, tilePaneCss } from '../lib/mapTiles';
 
 export type MapMode = 'none' | 'point' | 'area';
 
@@ -19,17 +20,6 @@ interface Props {
 
 const ACCENT = '#c8452f';
 const DEFAULT_CENTER: [number, number] = [28.1, -15.43]; // Gran Canaria
-
-// Match the map tiles to the current theme so the map isn't a bright glare in dark mode.
-function isDark(): boolean {
-  if (typeof document === 'undefined') return false;
-  const t = document.documentElement.getAttribute('data-theme');
-  if (t === 'dark') return true;
-  if (t === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 const T = {
   es: {
     addMap: 'Añadir un mapa (opcional)',
@@ -119,9 +109,9 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
       });
       // Zoom control bottom-right so it never covers the search results dropdown.
       L.control.zoom({ position: 'bottomright' }).addTo(map);
-      L.tileLayer(isDark() ? TILE_DARK : TILE_LIGHT, {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        maxZoom: 19,
+      L.tileLayer(TILE_URL, {
+        attribution: TILE_ATTRIBUTION,
+        maxZoom: TILE_MAX_ZOOM,
       }).addTo(map);
 
       map.on('click', (e: any) => setPoint(e.latlng.lat, e.latlng.lng));
@@ -281,6 +271,7 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
       )}
 
       <style>{`
+        ${tilePaneCss('.lp')}
         .lp__toggle, .lp__modes label, .lp__radius {
           display: flex; align-items: center; gap: 8px; cursor: pointer;
         }

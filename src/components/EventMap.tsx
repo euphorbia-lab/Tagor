@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
+import { TILE_URL, TILE_ATTRIBUTION, TILE_MAX_ZOOM, tilePaneCss } from '../lib/mapTiles';
 
 export type MapMode = 'point' | 'area';
 
@@ -21,14 +22,6 @@ const LABELS = {
   es: { directions: 'Cómo llegar', openMaps: 'Abrir en el mapa' },
   en: { directions: 'Get directions', openMaps: 'Open in maps' },
 } as const;
-
-function isDark(): boolean {
-  if (typeof document === 'undefined') return false;
-  const t = document.documentElement.getAttribute('data-theme');
-  if (t === 'dark') return true;
-  if (t === 'light') return false;
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
 
 /**
  * Static (non-interactive) map preview using Leaflet + free CartoDB tiles.
@@ -66,15 +59,10 @@ export default function EventMap({ lat, lng, mode, title, areaRadius = 500, lang
         attributionControl: true,
       });
 
-      L.tileLayer(
-        isDark()
-          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-          : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-        {
-          attribution: '&copy; OpenStreetMap &copy; CARTO',
-          maxZoom: 19,
-        }
-      ).addTo(map);
+      L.tileLayer(TILE_URL, {
+        attribution: TILE_ATTRIBUTION,
+        maxZoom: TILE_MAX_ZOOM,
+      }).addTo(map);
 
       if (mode === 'area') {
         L.circle([lat, lng], {
@@ -161,6 +149,7 @@ export default function EventMap({ lat, lng, mode, title, areaRadius = 500, lang
         }
         .tagor-map__btn { width: 100%; }
         .tagor-map .leaflet-container { background: var(--surface-2, #f3f1ec); }
+        ${tilePaneCss('.tagor-map')}
       `}</style>
     </div>
   );
