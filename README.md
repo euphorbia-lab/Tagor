@@ -12,6 +12,17 @@ itself. The server stores something it cannot read.
 > Tagor announces a decision. It does not help a group make one. If you need
 > "when is everyone free?", that is a different tool.
 
+## What Tagor deliberately is not
+
+The event already exists by the time Tagor is involved. This is the what, the when and the
+where. Come.
+
+So there is no RSVP, no "who's coming", no availability grid, no comments, no categories,
+no ticketing, no recommendations, no admin panel and no feed. These are not missing
+features waiting for a version 2. They are excluded on purpose, because each one turns a
+page you glance at into a thing you have to keep checking. Requests to add them will
+usually get a no, and that is the point.
+
 ## How the privacy actually works
 
 Most apps ask you to trust a promise. This one is built so the promise is hard to break.
@@ -46,10 +57,12 @@ aggregate analytics.
 API first, then hard-deletes the row. Expiry does the same on a daily job. Nothing is
 marked hidden and left behind.
 
-To check any of this yourself: the database rules are in [`supabase/migrations/`](./supabase/migrations),
-the crypto is about sixty lines in [`src/lib/crypto.ts`](./src/lib/crypto.ts), the server
-endpoints are in [`src/pages/api/`](./src/pages/api), and the plain-language version is on
-the in-app `/legal` page.
+None of that is only a claim in a readme. It is all in this repository: the crypto is about
+sixty lines in [`src/lib/crypto.ts`](./src/lib/crypto.ts), the server endpoints are in
+[`src/pages/api/`](./src/pages/api), the SQL that enforces the database rules is in
+[`supabase/migrations/`](./supabase/migrations), and the cleanup job is in
+[`supabase/functions/`](./supabase/functions). The plain-language version is on the in-app
+`/legal` page.
 
 ## Stack
 
