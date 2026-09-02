@@ -3,8 +3,8 @@ Allow: /
 Allow: /en/
 Allow: /nuevo
 Allow: /en/nuevo
-Allow: /legal
-Allow: /en/legal
+Allow: /legal/
+Allow: /en/legal/
 Disallow: /e/
 Disallow: /m/
 Disallow: /api/
