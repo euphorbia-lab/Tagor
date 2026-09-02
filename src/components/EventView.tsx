@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import EventMap from './EventMap';
 import ShareActions from './ShareActions';
+import PhotoGallery from './PhotoGallery';
 import { buildGoogleCalendarUrl } from '../lib/calendar';
 import { importKey, decryptJson, keyFromHash } from '../lib/crypto';
 import { decryptImageToUrl } from '../lib/images';
@@ -194,13 +195,7 @@ export default function EventView({
 
       {photos.length > 0 && (
         <section className="ev-block">
-          <ul className="ev-photos">
-            {photos.map((src) => (
-              <li key={src}>
-                <img src={src} alt="" loading="lazy" />
-              </li>
-            ))}
-          </ul>
+          <PhotoGallery urls={photos} lang={lang} />
         </section>
       )}
 
@@ -248,9 +243,4 @@ const css = `
   .ev-host { margin: 0 0 24px; }
   .ev-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 48px; }
   .ev-fail h1 { font-size: 24px; letter-spacing: -0.02em; margin: 8px 0 12px; }
-  .ev-photos { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-  .ev-photos img {
-    width: 100%; height: auto; display: block;
-    border-radius: var(--radius); border: 1px solid var(--border);
-  }
 `;
