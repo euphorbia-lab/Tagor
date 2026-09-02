@@ -27,7 +27,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const { data: row, error: findErr } = await supabase
     .from('events')
-    .select('id')
+    .select('id, view_slug')
     .eq('manage_token', token)
     .maybeSingle();
   if (findErr) {
@@ -35,6 +35,15 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: 'Could not delete.' }, 500);
   }
   if (!row) return json({ error: 'Not found.' }, 404);
+
+  // Images first: if this fails we still have the row, so the nightly purge can
+  // find them again. Dropping the row first would orphan them silently.
+  const { data: files } = await supabase.storage.from('event-images').list(row.view_slug);
+  if (files && files.length > 0) {
+    await supabase.storage
+      .from('event-images')
+      .remove(files.map((f) => `${row.view_slug}/${f.name}`));
+  }
 
   const { error: delErr } = await supabase.from('events').delete().eq('manage_token', token);
   if (delErr) {

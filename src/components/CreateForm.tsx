@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import LocationPicker, { type LocationValue } from './LocationPicker';
 import DateTimeField from './DateTimeField';
 import ShareActions from './ShareActions';
+import ImagePicker, { type PickedImage } from './ImagePicker';
 import { generateKey, exportKey, encryptJson } from '../lib/crypto';
 import { validateContent } from '../lib/event';
+import { encryptImage } from '../lib/images';
 
 declare global {
   interface Window {
@@ -103,6 +105,7 @@ export default function CreateForm({ lang, siteKey, siteUrl }: Props) {
   const [description, setDescription] = useState('');
   const [hostedBy, setHostedBy] = useState('');
   const [externalUrl, setExternalUrl] = useState('');
+  const [images, setImages] = useState<PickedImage[]>([]);
 
   const [token, setToken] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -197,6 +200,24 @@ export default function CreateForm({ lang, siteKey, siteUrl }: Props) {
         window.turnstile?.reset(widgetId.current ?? undefined);
         setToken('');
       } else {
+        // Images are a second call: the event has to exist before its blobs
+        // can be filed under its slug. A failure here loses the photos, not
+        // the event, so the link still works.
+        if (images.length > 0) {
+          try {
+            const encrypted = await Promise.all(
+              images.map((img) => encryptImage(img.bytes, key))
+            );
+            const manageToken = data.manageUrl.split('/m/')[1] ?? '';
+            await fetch('/api/upload-images', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ manage_token: manageToken, images: encrypted }),
+            });
+          } catch {
+            /* keep the event; the photos just did not make it */
+          }
+        }
         setResult({
           viewUrl: `${data.viewUrl}#${keyStr}`,
           manageUrl: `${data.manageUrl}#${keyStr}`,
@@ -288,6 +309,8 @@ export default function CreateForm({ lang, siteKey, siteUrl }: Props) {
         <span>{t.link}</span>
         <input value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} placeholder={t.linkPh} maxLength={500} />
       </label>
+
+      <ImagePicker lang={lang} value={images} onChange={setImages} />
 
       <div ref={widgetEl} className="cf-turnstile-widget" />
 

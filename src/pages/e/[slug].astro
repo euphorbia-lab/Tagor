@@ -57,6 +57,10 @@ const dateLabel = new Intl.DateTimeFormat(L.locale, {
 
 const origin = Astro.site ?? Astro.url.origin;
 const viewUrl = new URL(`/e/${slug}`, origin).toString();
+
+// Images are fetched straight from the public bucket. Public is fine because
+// each object is ciphertext, useless without the key in the fragment.
+const imageBase = `${import.meta.env.PUBLIC_SUPABASE_URL}/storage/v1/object/public/event-images/${slug}`;
 ---
 
 <BaseLayout
@@ -74,6 +78,8 @@ const viewUrl = new URL(`/e/${slug}`, origin).toString();
       all_day={ev.all_day}
       lang={lang}
       viewUrl={viewUrl}
+      imageCount={ev.image_count ?? 0}
+      imageBase={imageBase}
     />
 
     <footer class="foot muted">

@@ -33,6 +33,8 @@ export interface EventMeta {
 /** What get_event returns: the opaque blob plus the readable metadata. */
 export interface StoredEvent extends EventMeta {
   payload: string;
+  /** How many encrypted images live in storage for this event. */
+  image_count: number;
 }
 
 /** Grace period kept after an event before it auto-deletes. */

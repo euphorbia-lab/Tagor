@@ -16,12 +16,13 @@ let ev: {
   all_day: boolean;
   lang: string;
   view_slug: string;
+  image_count: number;
 } | null = null;
 
 if (token) {
   const { data, error } = await getServiceClient()
     .from('events')
-    .select('payload, start_at, end_at, all_day, lang, view_slug')
+    .select('payload, start_at, end_at, all_day, lang, view_slug, image_count')
     .eq('manage_token', token)
     .maybeSingle();
   if (error) console.error('manage lookup failed:', error.message);
@@ -40,6 +41,7 @@ const L =
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL || Astro.url.origin;
 const viewUrl = `${siteUrl}/e/${ev.view_slug}`;
+const imageBase = `${import.meta.env.PUBLIC_SUPABASE_URL}/storage/v1/object/public/event-images/${ev.view_slug}`;
 ---
 
 <BaseLayout title={`${L.title} · Tagor`} lang={lang} noindex={true}>
@@ -56,6 +58,8 @@ const viewUrl = `${siteUrl}/e/${ev.view_slug}`;
       lang={lang}
       manageToken={token as string}
       viewUrl={viewUrl}
+      imageCount={ev.image_count ?? 0}
+      imageBase={imageBase}
     />
   </main>
 

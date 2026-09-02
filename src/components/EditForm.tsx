@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import LocationPicker, { type LocationValue } from './LocationPicker';
 import DateTimeField from './DateTimeField';
+import ImagePicker, { type PickedImage } from './ImagePicker';
 import { encryptJson } from '../lib/crypto';
 import { validateContent, type EventContent } from '../lib/event';
+import { encryptImage } from '../lib/images';
 
 interface InitialEvent extends EventContent {
   start_at: string;
@@ -16,6 +18,8 @@ interface Props {
   initial: InitialEvent;
   /** Decrypted by ManageView; reused here to re-encrypt on save. */
   cryptoKey: CryptoKey;
+  /** Existing photos, already decrypted by ManageView. */
+  initialImages: PickedImage[];
 }
 
 const T = {
@@ -67,7 +71,13 @@ function toLocalInput(iso: string, dateOnly = false): string {
   return dateOnly ? date : `${date}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export default function EditForm({ lang, manageToken, initial, cryptoKey }: Props) {
+export default function EditForm({
+  lang,
+  manageToken,
+  initial,
+  cryptoKey,
+  initialImages,
+}: Props) {
   const t = T[lang];
 
   const [title, setTitle] = useState(initial.title);
@@ -84,6 +94,7 @@ export default function EditForm({ lang, manageToken, initial, cryptoKey }: Prop
   const [description, setDescription] = useState(initial.description ?? '');
   const [hostedBy, setHostedBy] = useState(initial.hosted_by ?? '');
   const [externalUrl, setExternalUrl] = useState(initial.external_url ?? '');
+  const [images, setImages] = useState<PickedImage[]>(initialImages);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -138,6 +149,17 @@ export default function EditForm({ lang, manageToken, initial, cryptoKey }: Prop
       if (!res.ok) {
         setError(data.error || t.error);
       } else {
+        // Photos are stored separately, so they are saved separately. Always
+        // sent, including when empty, so removing every photo really removes
+        // them rather than leaving the old set in place.
+        const encrypted = await Promise.all(
+          images.map((img) => encryptImage(img.bytes, cryptoKey))
+        );
+        await fetch('/api/upload-images', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ manage_token: manageToken, images: encrypted }),
+        });
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
       }
@@ -195,6 +217,8 @@ export default function EditForm({ lang, manageToken, initial, cryptoKey }: Prop
         <span>{t.link}</span>
         <input value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} maxLength={500} />
       </label>
+
+      <ImagePicker lang={lang} value={images} onChange={setImages} />
 
       {error && <p className="cf-error">{error}</p>}
       {saved && <p className="cf-saved">{t.saved}</p>}

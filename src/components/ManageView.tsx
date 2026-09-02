@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import EditForm from './EditForm';
 import ShareActions from './ShareActions';
+import type { PickedImage } from './ImagePicker';
 import { importKey, decryptJson, keyFromHash } from '../lib/crypto';
+import { decryptImageToBytes, bytesToObjectUrl } from '../lib/images';
 import type { EventContent } from '../lib/event';
 
 interface Props {
@@ -13,6 +15,10 @@ interface Props {
   manageToken: string;
   /** Keyless share URL; the key is re-appended in the browser. */
   viewUrl: string;
+  /** How many encrypted images this event has. */
+  imageCount: number;
+  /** Public base URL of this event's folder in the image bucket. */
+  imageBase: string;
 }
 
 const T = {
@@ -68,9 +74,12 @@ export default function ManageView({
   lang,
   manageToken,
   viewUrl,
+  imageCount,
+  imageBase,
 }: Props) {
   const t = T[lang];
   const [state, setState] = useState<State>({ status: 'loading' });
+  const [images, setImages] = useState<PickedImage[] | null>(imageCount > 0 ? null : []);
   const [delMsg, setDelMsg] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -95,6 +104,34 @@ export default function ManageView({
       cancelled = true;
     };
   }, [payload]);
+
+  // Pull the existing photos down and decrypt them, so the edit form starts
+  // from what is actually saved and a save does not wipe them.
+  useEffect(() => {
+    if (state.status !== 'ok' || imageCount < 1) return;
+    let cancelled = false;
+    (async () => {
+      const loaded: PickedImage[] = [];
+      for (let i = 0; i < imageCount; i++) {
+        try {
+          const res = await fetch(`${imageBase}/${i}.bin`);
+          if (!res.ok) continue;
+          const bytes = await decryptImageToBytes(await res.text(), state.key);
+          loaded.push({ bytes, url: bytesToObjectUrl(bytes) });
+        } catch {
+          /* skip this one */
+        }
+      }
+      if (cancelled) {
+        for (const l of loaded) URL.revokeObjectURL(l.url);
+        return;
+      }
+      setImages(loaded);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [state, imageCount, imageBase]);
 
   async function onDelete() {
     if (!confirm(t.confirm)) return;
@@ -164,12 +201,17 @@ export default function ManageView({
 
       <section className="mv-edit">
         <h2>{t.editTitle}</h2>
-        <EditForm
-          lang={lang}
-          manageToken={manageToken}
-          cryptoKey={state.key}
-          initial={{ ...ev, start_at, end_at, all_day }}
-        />
+        {images === null ? (
+          <p className="mv-muted">{t.loading}</p>
+        ) : (
+          <EditForm
+            lang={lang}
+            manageToken={manageToken}
+            cryptoKey={state.key}
+            initial={{ ...ev, start_at, end_at, all_day }}
+            initialImages={images}
+          />
+        )}
       </section>
 
       <section className="mv-danger">

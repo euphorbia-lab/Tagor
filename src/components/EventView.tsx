@@ -3,6 +3,7 @@ import EventMap from './EventMap';
 import ShareActions from './ShareActions';
 import { buildGoogleCalendarUrl } from '../lib/calendar';
 import { importKey, decryptJson, keyFromHash } from '../lib/crypto';
+import { decryptImageToUrl } from '../lib/images';
 import type { EventContent } from '../lib/event';
 
 interface Props {
@@ -14,6 +15,10 @@ interface Props {
   lang: 'es' | 'en';
   /** Keyless URL of this page; the key is re-appended for sharing. */
   viewUrl: string;
+  /** How many encrypted images to fetch from storage. */
+  imageCount: number;
+  /** Public base URL of the image bucket. */
+  imageBase: string;
 }
 
 const T = {
@@ -59,9 +64,19 @@ type State =
   | { status: 'badkey' }
   | { status: 'ok'; content: EventContent; keyStr: string };
 
-export default function EventView({ payload, start_at, end_at, all_day, lang, viewUrl }: Props) {
+export default function EventView({
+  payload,
+  start_at,
+  end_at,
+  all_day,
+  lang,
+  viewUrl,
+  imageCount,
+  imageBase,
+}: Props) {
   const t = T[lang];
   const [state, setState] = useState<State>({ status: 'loading' });
+  const [photos, setPhotos] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,6 +103,32 @@ export default function EventView({ payload, start_at, end_at, all_day, lang, vi
   useEffect(() => {
     if (state.status === 'ok') document.title = `${state.content.title} · Tagor`;
   }, [state]);
+
+  // Photos are separate blobs, fetched and decrypted once the key is known.
+  // A failed or corrupt image is skipped rather than breaking the page.
+  useEffect(() => {
+    if (state.status !== 'ok' || imageCount < 1) return;
+    let cancelled = false;
+    const made: string[] = [];
+    (async () => {
+      const key = await importKey(state.keyStr);
+      for (let i = 0; i < imageCount; i++) {
+        try {
+          const res = await fetch(`${imageBase}/${i}.bin`);
+          if (!res.ok) continue;
+          const url = await decryptImageToUrl(await res.text(), key);
+          made.push(url);
+          if (!cancelled) setPhotos((p) => [...p, url]);
+        } catch {
+          /* skip this one */
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      for (const url of made) URL.revokeObjectURL(url);
+    };
+  }, [state, imageCount, imageBase]);
 
   const start = new Date(start_at);
   const dateLabel = new Intl.DateTimeFormat(t.locale, {
@@ -151,6 +192,18 @@ export default function EventView({ payload, start_at, end_at, all_day, lang, vi
         )}
       </section>
 
+      {photos.length > 0 && (
+        <section className="ev-block">
+          <ul className="ev-photos">
+            {photos.map((src) => (
+              <li key={src}>
+                <img src={src} alt="" loading="lazy" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {ev.description && (
         <section className="ev-block">
           <h2 className="ev-label">{t.details}</h2>
@@ -195,4 +248,9 @@ const css = `
   .ev-host { margin: 0 0 24px; }
   .ev-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 48px; }
   .ev-fail h1 { font-size: 24px; letter-spacing: -0.02em; margin: 8px 0 12px; }
+  .ev-photos { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .ev-photos img {
+    width: 100%; height: auto; display: block;
+    border-radius: var(--radius); border: 1px solid var(--border);
+  }
 `;
