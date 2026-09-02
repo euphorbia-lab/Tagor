@@ -9,13 +9,13 @@ the where, a map and your photos. The event deletes itself after it happens.
 The event is encrypted in your browser before it is sent, and the key travels in the link
 itself. The server stores something it cannot read.
 
-> Tagor announces a decision. It does not help a group make one. If you need
-> "when is everyone free?", that is a different tool.
+> Tagor announces a decision: what event, when, where, details. It does not help a group make one. If you need
+> "when is everyone free?" or a calendar with local events, that is a different tool.
 
 ## What Tagor deliberately is not
 
 The event already exists by the time Tagor is involved. This is the what, the when and the
-where. Come.
+where.
 
 So there is no RSVP, no "who's coming", no availability grid, no comments, no categories,
 no ticketing, no recommendations, no admin panel and no feed. These are not missing
@@ -108,10 +108,8 @@ silently orphan every photo.
 
 ## Support
 
-Free and open source (MIT). If it is useful, you can support the hosting:
+Free and open source (MIT). 
 
-- GitHub Sponsors: _TODO_
-- Ko-fi: _TODO_
 
 ## License
 
