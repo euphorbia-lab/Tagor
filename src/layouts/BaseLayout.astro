@@ -3,6 +3,7 @@ import '@fontsource-variable/bricolage-grotesque';
 import '@fontsource-variable/hanken-grotesk';
 import '../styles/global.css';
 import CookieNotice from '../components/CookieNotice.astro';
+import AppMenu from '../components/AppMenu.astro';
 
 export interface Props {
   title: string;
@@ -132,6 +133,27 @@ const isProd = import.meta.env.PROD;
       })();
     </script>
 
+    {/* No-flash native-app detection: Android sets document.referrer to
+        android-app://<packageId> only on the TWA's cold-start navigation.
+        Later in-app navigations lose that referrer (this app has no client
+        router, so every page is a full load), so the result is cached in
+        sessionStorage the first time we see it and reused on every later
+        page. Setting data-native on <html> here, before body parses, means
+        CSS alone can gate native-only UI with zero flash. */}
+    <script is:inline>
+      (() => {
+        try {
+          const isNative =
+            document.referrer.startsWith('android-app://') ||
+            sessionStorage.getItem('tagor-native') === '1';
+          if (isNative) {
+            sessionStorage.setItem('tagor-native', '1');
+            document.documentElement.setAttribute('data-native', 'true');
+          }
+        } catch (_) {}
+      })();
+    </script>
+
     {/* Shell service worker: only for installability + a branded offline
         page. See public/sw.js for exactly what it does and does not cache. */}
     {isProd && (
@@ -146,6 +168,7 @@ const isProd = import.meta.env.PROD;
   </head>
   <body>
     <slot />
+    <AppMenu lang={lang} />
     <CookieNotice lang={lang} />
   </body>
 </html>

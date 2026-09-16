@@ -34,6 +34,7 @@ Thumbs.db
 *.p12
 *.apk
 *.aab
+*.idsig
 android/app/
 android/gradle/
 android/*.gradle*
@@ -42,3 +43,7 @@ android/local.properties
 android/.gradle/
 android/build/
 android/assetlinks.json
+android/gradle.properties
+android/manifest-checksum.txt
+android/store_icon.png
+hs_err_pid*.log

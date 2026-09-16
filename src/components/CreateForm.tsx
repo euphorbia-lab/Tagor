@@ -6,6 +6,8 @@ import ImagePicker, { type PickedImage } from './ImagePicker';
 import { generateKey, exportKey, encryptJson } from '../lib/crypto';
 import { validateContent } from '../lib/event';
 import { encryptImage } from '../lib/images';
+import { isNativeApp } from '../lib/platform';
+import { addHistoryEntry } from '../lib/history';
 
 declare global {
   interface Window {
@@ -218,10 +220,14 @@ export default function CreateForm({ lang, siteKey, siteUrl }: Props) {
             /* keep the event; the photos just did not make it */
           }
         }
-        setResult({
-          viewUrl: `${data.viewUrl}#${keyStr}`,
-          manageUrl: `${data.manageUrl}#${keyStr}`,
-        });
+        const viewUrl = `${data.viewUrl}#${keyStr}`;
+        const manageUrl = `${data.manageUrl}#${keyStr}`;
+
+        if (isNativeApp()) {
+          addHistoryEntry({ title: title.trim(), startAt: toISO(start), viewUrl, manageUrl });
+        }
+
+        setResult({ viewUrl, manageUrl });
       }
     } catch {
       setError(t.error);

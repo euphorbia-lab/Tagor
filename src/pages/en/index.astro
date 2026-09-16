@@ -49,12 +49,24 @@ const alternates = { es: '/', en: '/en/' };
     </header>
 
     <section class="hero">
-      <h1>{t('site.tagline')}</h1>
-      <p class="muted lead">{t('site.description')}</p>
+      <div class="hero__web">
+        <h1>{t('site.tagline')}</h1>
+        <p class="muted lead">{t('site.description')}</p>
+      </div>
+
+      <div class="hero__native">
+        <ol class="how-steps">
+          <li>{t('how.native.1')}</li>
+          <li>{t('how.native.2')}</li>
+          <li>{t('how.native.3')}</li>
+        </ol>
+      </div>
+
       <a href="/en/nuevo" class="btn btn--primary">{t('nav.create')}</a>
+      <p class="hero__native-caption">{t('create.privatelyCaption')}</p>
     </section>
 
-    <section class="how">
+    <section class="how how--web">
       <ul>
         <li>{t('how.1')}</li>
         <li>{t('how.2')}</li>
@@ -159,6 +171,47 @@ const alternates = { es: '/', en: '/en/' };
       left: 4px;
       color: var(--accent);
       font-weight: 800;
+    }
+
+    .hero__native,
+    .hero__native-caption {
+      display: none;
+    }
+    :root[data-native] .hero__web {
+      display: none;
+    }
+    :root[data-native] .hero__native {
+      display: block;
+    }
+    :root[data-native] .hero__native-caption {
+      display: block;
+      margin: 8px 0 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    :root[data-native] .how--web {
+      display: none;
+    }
+    :root[data-native] .top__nav {
+      margin-right: 52px;
+    }
+
+    .how-steps {
+      list-style: none;
+      margin: 0 0 28px;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      font-size: clamp(17px, 4vw, 22px);
+    }
+    .how-steps li:not(:last-child)::after {
+      content: '→';
+      color: var(--accent);
+      font-weight: 800;
+      margin-left: 10px;
     }
   </style>
 </BaseLayout>

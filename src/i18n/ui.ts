@@ -27,6 +27,10 @@ export const ui = {
     'how.4': 'Hasta 3 fotos, sin los datos de ubicación de la cámara.',
     'how.5': 'Se borra solo, unos 14 días después del evento.',
     'create.title': 'Crear un evento',
+    'how.native.1': 'Crea',
+    'how.native.2': 'Comparte el enlace',
+    'how.native.3': 'Ya está',
+    'create.privatelyCaption': 'Privadamente',
   },
   en: {
     'site.tagline': 'Make an event. Share one link. Done.',
@@ -39,6 +43,10 @@ export const ui = {
     'how.4': 'Up to 3 photos, with the camera location data stripped out.',
     'how.5': 'Deletes itself about 14 days after the event.',
     'create.title': 'Create an event',
+    'how.native.1': 'Create',
+    'how.native.2': 'Share the link',
+    'how.native.3': 'Done',
+    'create.privatelyCaption': 'Privately',
   },
 } as const;
 

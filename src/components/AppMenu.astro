@@ -1,0 +1,113 @@
+---
+// Menu for the Tagor Android app only. Hidden by default (display:none);
+// [data-native], set by BaseLayout's inline detection script, reveals it.
+// A regular web visitor never sees this button at all.
+export interface Props {
+  lang?: string;
+}
+const { lang = 'es' } = Astro.props;
+
+const T =
+  lang === 'en'
+    ? { label: 'Menu', history: 'History', policies: 'Policies', help: 'Help' }
+    : { label: 'Menú', history: 'Historial', policies: 'Políticas', help: 'Ayuda' };
+
+const historyHref = lang === 'en' ? '/en/historial' : '/historial';
+const legalHref = lang === 'en' ? '/en/legal/' : '/legal/';
+const helpHref = 'mailto:hola@euphorbialab.com';
+---
+
+<button id="app-menu-btn" class="app-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label={T.label}>
+  ☰
+</button>
+
+<nav id="app-menu-panel" class="app-menu-panel" hidden aria-label={T.label}>
+  <a href={historyHref}>{T.history}</a>
+  <a href={legalHref}>{T.policies}</a>
+  <a href={helpHref}>{T.help}</a>
+</nav>
+
+<script>
+  const btn = document.getElementById('app-menu-btn');
+  const panel = document.getElementById('app-menu-panel');
+
+  const close = () => {
+    panel?.setAttribute('hidden', '');
+    btn?.setAttribute('aria-expanded', 'false');
+  };
+  const open = () => {
+    panel?.removeAttribute('hidden');
+    btn?.setAttribute('aria-expanded', 'true');
+  };
+
+  btn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (panel?.hasAttribute('hidden')) open();
+    else close();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!panel || panel.hasAttribute('hidden')) return;
+    if (e.target === btn || (e.target instanceof Node && panel.contains(e.target))) return;
+    close();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+  });
+</script>
+
+<style>
+  .app-menu-btn {
+    display: none; /* revealed only when [data-native] is set, below */
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 950;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+  :root[data-native] .app-menu-btn {
+    display: flex;
+  }
+
+  .app-menu-panel {
+    position: fixed;
+    top: 60px;
+    right: 14px;
+    z-index: 950;
+    display: grid;
+    gap: 4px;
+    min-width: 160px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.2);
+  }
+  /* The class above sets display:grid, which would override [hidden] —
+     same footgun CookieNotice documents. This lets hidden actually hide. */
+  .app-menu-panel[hidden] {
+    display: none;
+  }
+  .app-menu-panel a {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+  }
+  .app-menu-panel a:hover {
+    background: var(--surface-2);
+    text-decoration: none;
+  }
+</style>

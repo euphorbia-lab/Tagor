@@ -4,15 +4,14 @@
   "name": "Tagor",
   "launcherName": "Tagor",
   "display": "standalone",
-  "orientation": "any",
-  "themeColor": "#c8452f",
-  "navigationColor": "#f5f5f3",
-  "navigationColorDark": "#0e0f11",
-  "navigationDividerColor": "#f5f5f3",
-  "navigationDividerColorDark": "#0e0f11",
-  "backgroundColor": "#f5f5f3",
-  "backgroundColorDark": "#0e0f11",
-  "enableNotifications": false,
+  "themeColor": "#C8452F",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#F5F5F3",
+  "enableNotifications": true,
   "startUrl": "/",
   "iconUrl": "https://tagor.app/icon-512.png",
   "maskableIconUrl": "https://tagor.app/icon-maskable-512.png",
@@ -21,24 +20,35 @@
     "path": "./tagor-upload.keystore",
     "alias": "tagor"
   },
-  "appVersionName": "1.0.0",
-  "appVersionCode": 1,
+  "appVersionName": "2.0.3",
+  "appVersionCode": 8,
   "shortcuts": [
     {
       "name": "Crear evento",
-      "short_name": "Crear",
-      "url": "/nuevo",
-      "icon": "https://tagor.app/icon-192.png"
+      "shortName": "Crear",
+      "url": "https://tagor.app/nuevo",
+      "chosenIconUrl": "https://tagor.app/icon-192.png"
     }
   ],
+  "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://tagor.app/site.webmanifest",
   "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
   "fullScopeUrl": "https://tagor.app/",
   "minSdkVersion": 21,
+  "orientation": "default",
+  "fingerprints": [],
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
-  "protocolHandlers": []
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [],
+  "appVersion": "2.0.3"
 }

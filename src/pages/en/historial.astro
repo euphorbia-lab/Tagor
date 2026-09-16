@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HistoryView from '../../components/HistoryView.tsx';
+
+// No server data needed (unlike nuevo.astro, which needs env for Turnstile),
+// so this can stay fully static.
+export const prerender = true;
+---
+
+<BaseLayout title="History · Tagor" lang="en" noindex={true}>
+  <main class="wrap">
+    <a href="/en/" class="muted back">← Tagor</a>
+    <h1>History</h1>
+    <HistoryView client:only="react" lang="en" />
+  </main>
+
+  <style>
+    .back {
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+    }
+  </style>
+</BaseLayout>
