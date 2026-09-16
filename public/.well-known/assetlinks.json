@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "tagor.app.euphorbia",
+      "sha256_cert_fingerprints": [
+        "REPLACE_AFTER_FIRST_PLAY_CONSOLE_UPLOAD__SEE_ANDROID.md"
+      ]
+    }
+  }
+]

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tagor — sin conexión</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: #f5f5f3;
+        color: #1a1a1a;
+        text-align: center;
+      }
+      @media (prefers-color-scheme: dark) {
+        body { background: #0e0f11; color: #f0f0f0; }
+      }
+      main { max-width: 320px; }
+      h1 { font-size: 1.25rem; margin: 0 0 8px; }
+      p { margin: 0; opacity: 0.75; line-height: 1.5; }
+      button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        background: #c8452f;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Sin conexión</h1>
+      <p>No se pudo cargar esta página. Comprueba tu conexión e inténtalo de nuevo.</p>
+      <p style="margin-top: 8px">No connection. Check your network and try again.</p>
+      <button onclick="location.reload()">Reintentar / Retry</button>
+    </main>
+  </body>
+</html>

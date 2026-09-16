@@ -14,7 +14,7 @@ export interface Props {
   /** Set true on private event pages so search engines never index them. */
   noindex?: boolean;
   lang?: string;
-  /** Structured data object, rendered as a JSON-LD <script> tag. */
+  /** Structured data object, rendered as a JSON-LD script element. */
   jsonLd?: Record<string, unknown>;
   /** Path to the ES and EN version of this same page, for hreflang alternates. Omit on pages with no translated counterpart (event/manage/create pages). */
   alternates?: { es: string; en: string };
@@ -46,6 +46,11 @@ const resolvedOgImage = ogImage ?? new URL('/og-image.png', origin).toString();
 // shared social card (public/og-image.png, 1200x630) unless a page overrides it.
 const ogImageWidth = ogImage ? 640 : 1200;
 const ogImageHeight = ogImage ? 640 : 630;
+
+// Only in production: registering the shell service worker in dev would let
+// it cache astro's dev server output, which is exactly the kind of stale
+// state it exists to avoid on live event pages.
+const isProd = import.meta.env.PROD;
 ---
 
 <!doctype html>
@@ -126,6 +131,18 @@ const ogImageHeight = ogImage ? 640 : 630;
         } catch (_) {}
       })();
     </script>
+
+    {/* Shell service worker: only for installability + a branded offline
+        page. See public/sw.js for exactly what it does and does not cache. */}
+    {isProd && (
+      <script is:inline>
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+          });
+        }
+      </script>
+    )}
   </head>
   <body>
     <slot />

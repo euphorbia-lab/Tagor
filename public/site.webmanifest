@@ -1,11 +1,22 @@
 {
+  "id": "/",
   "name": "Tagor",
   "short_name": "Tagor",
   "description": "Crea un evento. Comparte un enlace. Ya está.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#f5f5f3",
   "theme_color": "#c8452f",
+  "shortcuts": [
+    {
+      "name": "Crear evento",
+      "short_name": "Crear",
+      "url": "/nuevo",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "icons": [
     {
       "src": "/icon-192.png",

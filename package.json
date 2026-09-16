@@ -8,7 +8,10 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "android:init": "cd android && npx @bubblewrap/cli init --manifest https://tagor.app/site.webmanifest",
+    "android:build": "cd android && npx @bubblewrap/cli build",
+    "android:update": "cd android && npx @bubblewrap/cli update"
   },
   "dependencies": {
     "@astrojs/netlify": "^6.0.0",

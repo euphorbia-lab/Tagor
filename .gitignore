@@ -26,3 +26,19 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Android / TWA (Bubblewrap) — keep twa-manifest.json, ignore the generated
+# Gradle project, build output and the signing key.
+*.keystore
+*.jks
+*.p12
+*.apk
+*.aab
+android/app/
+android/gradle/
+android/*.gradle*
+android/gradlew*
+android/local.properties
+android/.gradle/
+android/build/
+android/assetlinks.json
