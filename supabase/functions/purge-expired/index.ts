@@ -4,7 +4,12 @@
 // This is a function rather than plain SQL in pg_cron because Supabase blocks
 // direct DELETE on storage tables (storage.protect_delete). Removing objects
 // has to go through the Storage API, so the purge lives here and the cron job
-// (see migrations/0006_purge_via_function.sql) just calls it.
+// (see migrations/0007_purge_secret_from_vault.sql) just calls it.
+//
+// The anon key is enough to reach the function, so it also requires the
+// PURGE_SECRET function secret in the x-purge-secret header. The cron job reads
+// the same value from Vault ('purge_secret'). If PURGE_SECRET is unset, every
+// call is refused.
 //
 // Deploy: supabase functions deploy purge-expired
 
@@ -14,7 +19,7 @@ const BUCKET = 'event-images';
 
 Deno.serve(async (req) => {
   const secret = Deno.env.get('PURGE_SECRET');
-  if (secret && req.headers.get('x-purge-secret') !== secret) {
+  if (!secret || req.headers.get('x-purge-secret') !== secret) {
     return new Response('forbidden', { status: 403 });
   }
 

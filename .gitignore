@@ -47,3 +47,6 @@ android/gradle.properties
 android/manifest-checksum.txt
 android/store_icon.png
 hs_err_pid*.log
+
+# local Claude Code config
+.claude/
