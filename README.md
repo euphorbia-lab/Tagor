@@ -1,4 +1,4 @@
-# Tagor
+<img width="150" height="87" alt="logo" src="https://github.com/user-attachments/assets/93f13231-d12a-42b4-bbb5-8e582806f152" />
 
 [![CI](https://github.com/euphorbia-lab/Tagor/actions/workflows/ci.yml/badge.svg)](https://github.com/euphorbia-lab/Tagor/actions/workflows/ci.yml)
 
@@ -14,6 +14,9 @@ itself. The server stores something it cannot read.
 
 > Tagor announces a decision: what event, when, where, details. It does not help a group make one. If you need
 > "when is everyone free?" or a calendar with local events, that is a different tool.
+
+<img width="200" height="500" alt="event-creation-tagor-2" src="https://github.com/user-attachments/assets/ea0d30a8-def6-4bb1-a0aa-b285a692884d" /> <img width="200" height="500" alt="event-created-1" src="https://github.com/user-attachments/assets/89835abc-3b25-4bed-a4bc-2cbeb8656e77" /> <img width="200" height="500" alt="event-created-functions" src="https://github.com/user-attachments/assets/65b9b992-f6d3-41b8-a08c-6732db88b46b" />
+
 
 ## Tagor stays away from
 
@@ -104,15 +107,11 @@ supabase/
   functions/           the purge job, which deletes storage as well as rows
 ```
 
-Two notes that are easy to trip over. Event and form strings live next to their components
-rather than in `i18n/`, because each island is self-contained and splitting them made it
-easy to miss one. And the purge runs as a function rather than plain SQL because Supabase
-blocks direct deletion from storage tables, so a SQL-only job would delete rows and
-silently orphan every photo.
+Three notes that are easy to trip over. Event and form strings live next to their components rather than in i18n/, because each island is self-contained and splitting them made it easy to miss one. The purge runs as a function rather than plain SQL because Supabase blocks direct deletion from storage tables, so a SQL-only job would delete rows and silently orphan every photo; it only runs when called with the PURGE_SECRET, which the cron job reads from Supabase Vault. And the language redirect from / to /en/ happens in the browser, not on the server, so the home pages stay static and the Spanish one stays indexed.
 
 ## Support
 
-Free and open source (MIT). Found a security problem? See [SECURITY.md](./SECURITY.md).
+Made in the Canary Islands, for anywhere. Free and open source (MIT). Found a security problem? See [SECURITY.md](./SECURITY.md).
 
 
 ## License
