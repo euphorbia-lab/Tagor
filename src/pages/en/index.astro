@@ -29,6 +29,16 @@ const jsonLd = {
 };
 
 const alternates = { es: '/', en: '/en/' };
+
+// Icons for the privacy list, in the same order as how.1-5 (Lucide, ISC).
+// Only the Android app shows them (see the [data-native] styles below).
+const howIcons = [
+  '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />',
+  '<rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />',
+  '<circle cx="12" cy="8" r="4" /><path d="M20 21a8 8 0 0 0-16 0" />',
+  '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" />',
+  '<circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />',
+];
 ---
 
 <BaseLayout
@@ -43,7 +53,10 @@ const alternates = { es: '/', en: '/en/' };
     <header class="top">
       <img src="/logo.png" alt="Tagor" class="logo" />
       <nav class="top__nav">
-        <a href="/">ES</a>
+        <div class="lang">
+          <span class="lang__current" aria-current="page">EN</span>
+          <a href="/">ES</a>
+        </div>
         <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme">◐</button>
       </nav>
     </header>
@@ -55,29 +68,36 @@ const alternates = { es: '/', en: '/en/' };
       </div>
 
       <div class="hero__native">
-        <ol class="how-steps">
-          <li>{t('how.native.1')}</li>
-          <li>{t('how.native.2')}</li>
-          <li>{t('how.native.3')}</li>
-        </ol>
+        <h1>
+          <span>{t('native.tagline.1')}</span>
+          <span>{t('native.tagline.2')}</span>
+          <span class="accent">{t('native.tagline.3')}</span>
+        </h1>
+        <p class="muted lead">
+          <span>{t('native.description.1')}</span>
+          <span>{t('native.description.2')}</span>
+        </p>
       </div>
 
       <a href="/en/nuevo" class="btn btn--primary">{t('nav.create')}</a>
-      <p class="hero__native-caption">{t('create.privatelyCaption')}</p>
     </section>
 
-    <section class="how how--web">
+    <section class="how">
+      <h2 class="how__label">{t('native.how.label')}</h2>
       <ul>
-        <li>{t('how.1')}</li>
-        <li>{t('how.2')}</li>
-        <li>{t('how.3')}</li>
-        <li>{t('how.4')}</li>
-        <li>{t('how.5')}</li>
+        {(['how.1', 'how.2', 'how.3', 'how.4', 'how.5'] as const).map((key, i) => (
+          <li>
+            <span class="how__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={howIcons[i]} />
+            </span>
+            <span>{t(key)}</span>
+          </li>
+        ))}
       </ul>
     </section>
 
     <footer class="foot muted">
-      <a href="/en/legal/">Legal & privacy</a> ·
+      <a href="/en/legal/">Legal & privacy</a><span class="foot__sep"> ·</span>
       <a href="https://github.com/euphorbia-lab/Tagor" target="_blank" rel="noopener">Open source</a>
     </footer>
   </main>
@@ -173,9 +193,74 @@ const alternates = { es: '/', en: '/en/' };
       font-weight: 800;
     }
 
+    /* The web home shows only the other language and plain bullets; the
+       current-language chip, list label and icons belong to the app layout. */
     .hero__native,
-    .hero__native-caption {
+    .lang__current,
+    .how__label,
+    .how__icon {
       display: none;
+    }
+
+    /* Android app home. [data-native] is set by BaseLayout before first paint. */
+    :root[data-native] .wrap {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding-top: 14px;
+      padding-bottom: 28px;
+    }
+    :root[data-native] .top {
+      min-height: 40px;
+    }
+    :root[data-native] .logo {
+      height: 38px;
+    }
+    /* Leaves room for AppMenu's fixed 40px button so the three controls
+       read as one row. */
+    :root[data-native] .top__nav {
+      gap: 8px;
+      margin-right: 40px;
+    }
+    :root[data-native] .lang {
+      display: flex;
+      height: 40px;
+      padding: 3px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+    }
+    :root[data-native] .lang__current,
+    :root[data-native] .lang a {
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    :root[data-native] .lang__current {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    :root[data-native] .lang a:hover {
+      text-decoration: none;
+      color: var(--text);
+    }
+    :root[data-native] .icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: var(--surface);
+    }
+
+    :root[data-native] .hero {
+      margin-top: 32px;
+      margin-bottom: 36px;
     }
     :root[data-native] .hero__web {
       display: none;
@@ -183,35 +268,85 @@ const alternates = { es: '/', en: '/en/' };
     :root[data-native] .hero__native {
       display: block;
     }
-    :root[data-native] .hero__native-caption {
+    :root[data-native] .hero h1 {
+      font-size: clamp(28px, 8vw, 36px);
+      margin-bottom: 14px;
+    }
+    :root[data-native] .hero h1 span,
+    :root[data-native] .lead span {
       display: block;
-      margin: 8px 0 0;
-      font-size: 13px;
-      color: var(--text-muted);
     }
-    :root[data-native] .how--web {
-      display: none;
+    :root[data-native] .hero h1 .accent {
+      color: var(--accent);
     }
-    :root[data-native] .top__nav {
-      margin-right: 52px;
+    :root[data-native] .lead {
+      font-size: 15px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    :root[data-native] .hero .btn--primary {
+      width: 100%;
+      min-height: 50px;
+      font-size: 16px;
+      border-radius: var(--radius);
     }
 
-    .how-steps {
-      list-style: none;
-      margin: 0 0 28px;
-      padding: 0;
+    :root[data-native] .how {
+      margin-bottom: 40px;
+    }
+    :root[data-native] .how__label {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+      margin: 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    :root[data-native] .how ul {
+      gap: 0;
+    }
+    :root[data-native] .how li {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    :root[data-native] .how li::before {
+      content: none;
+    }
+    :root[data-native] .how__icon {
+      display: flex;
+      flex: 0 0 34px;
+      height: 34px;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      background: var(--accent-weak);
+      color: var(--accent);
+    }
+    :root[data-native] .how__icon svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    :root[data-native] .foot {
+      margin-top: auto;
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 4px;
-      font-weight: 600;
-      font-size: clamp(17px, 4vw, 22px);
+      gap: 8px 24px;
+      font-size: 14px;
     }
-    .how-steps li:not(:last-child)::after {
-      content: '→';
-      color: var(--accent);
-      font-weight: 800;
-      margin-left: 10px;
+    :root[data-native] .foot__sep {
+      display: none;
+    }
+    :root[data-native] .foot a {
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
   </style>
 </BaseLayout>
