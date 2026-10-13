@@ -13,7 +13,7 @@ itself. The server stores something it cannot read.
 > Tagor announces a decision: what event, when, where, details. It does not help a group make one. If you need
 > "when is everyone free?" or a calendar with local events, that is a different tool.
 
-## What Tagor deliberately is not
+## Tagor stays away from
 
 The event already exists by the time Tagor is involved. This is the what, the when and the
 where.
@@ -24,16 +24,14 @@ features waiting for a version 2. They are excluded on purpose, because each one
 page you glance at into a thing you have to keep checking. Requests to add them will
 usually get a no, and that is the point.
 
-## How the privacy actually works
-
-Most apps ask you to trust a promise. This one is built so the promise is hard to break.
+## How the privacy works in Tagor.app
 
 **The key never reaches the server.** When you create an event, your browser generates an
 AES-GCM key, encrypts the title, place, description, coordinates and photos, and sends only
 the ciphertext. The key is put in the part of the link after the `#`. Browsers never send
 that part in a request, so it cannot appear in our logs, our database or our backups.
 
-**What we can still see.** The start and end dates, the all-day flag, the language, the
+**What remains visible.** The start and end dates, the all-day flag, the language, the
 slug, the manage token, and how many photos there are. The dates have to stay readable
 because the job that deletes expired events needs to know when they expired. Everything a
 reader would care about is not readable by us.
@@ -59,7 +57,7 @@ that phone, and that list never leaves it.
 API first, then hard-deletes the row. Expiry does the same on a daily job. Nothing is
 marked hidden and left behind.
 
-None of that is only a claim in a readme. It is all in this repository: the crypto is about
+These claims can be verified in this repo: the crypto is about
 sixty lines in [`src/lib/crypto.ts`](./src/lib/crypto.ts), the server endpoints are in
 [`src/pages/api/`](./src/pages/api), the SQL that enforces the database rules is in
 [`supabase/migrations/`](./supabase/migrations), and the cleanup job is in
