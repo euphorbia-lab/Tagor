@@ -19,7 +19,7 @@ interface Props {
 }
 
 const ACCENT = '#c8452f';
-const DEFAULT_CENTER: [number, number] = [28.1, -15.43]; // Gran Canaria
+const DEFAULT_CENTER: [number, number] = [20, 0]; // whole-world view until a place is picked
 const T = {
   es: {
     addMap: 'Añadir un mapa (opcional)',
@@ -104,7 +104,7 @@ export default function LocationPicker({ lang, value, onChange }: Props) {
 
       const map = L.map(mapEl.current, {
         center,
-        zoom: value.lat != null ? 15 : 11,
+        zoom: value.lat != null ? 15 : 2,
         zoomControl: false,
       });
       // Zoom control bottom-right so it never covers the search results dropdown.

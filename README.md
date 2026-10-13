@@ -2,9 +2,10 @@
 
 **Create an event. Share one link. That's it.**
 
-No accounts, no public list, no app. You make an event, you get a private link and a QR,
-you share them wherever you like. Whoever opens the link sees a clean page with the when,
-the where, a map and your photos. The event deletes itself after it happens.
+No accounts, no public list, nothing to install. You make an event, you get a private link
+and a QR, you share them wherever you like. Whoever opens the link sees a clean page with
+the when, the where, a map and your photos. The event deletes itself two weeks after it
+ends.
 
 The event is encrypted in your browser before it is sent, and the key travels in the link
 itself. The server stores something it cannot read.
@@ -51,7 +52,8 @@ public list. Row Level Security blocks all direct database access from clients; 
 through one narrow function that never returns the manage token, and writes happen
 server-side only. Cloudflare Turnstile plus a per-IP rate limit on creation, and the rate
 limiter stores only a salted hash of the IP, never the address. No cookies, only anonymous
-aggregate analytics.
+aggregate visit counts (Netlify). The Android app keeps a list of the events you created on
+that phone, and that list never leaves it.
 
 **Deletion is real deletion.** Deleting an event removes its photos through the Storage
 API first, then hard-deletes the row. Expiry does the same on a daily job. Nothing is
@@ -73,6 +75,8 @@ sixty lines in [`src/lib/crypto.ts`](./src/lib/crypto.ts), the server endpoints 
 - **Photon** for address search.
 - **Netlify** for hosting.
 - **Cloudflare Turnstile** for the bot check.
+- **Trusted Web Activity** for the optional Android app, which is the same site in a
+  Chrome shell. See [ANDROID.md](./ANDROID.md).
 
 ## Development
 
@@ -108,7 +112,7 @@ silently orphan every photo.
 
 ## Support
 
-Free and open source (MIT). 
+Free and open source (MIT). Found a security problem? See [SECURITY.md](./SECURITY.md).
 
 
 ## License

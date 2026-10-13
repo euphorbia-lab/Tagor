@@ -1,15 +1,7 @@
-// General address search via Photon (open-source OSM geocoder).
-//
-// Unlike the salvaged locationGeocoding.ts (which HARD-FILTERS to the Canary
-// Islands), this is global: it biases results toward the Canaries but never
-// discards anything, so an event anywhere in the world can still find its spot.
+// General address search via Photon (open-source OSM geocoder). Worldwide, with
+// no location bias: Photon ranks results by its own importance score.
 
 const PHOTON_URL = 'https://photon.komoot.io/api/';
-
-// Bias center: middle of the Canary Islands. Photon ranks nearby results higher
-// without excluding far-away ones.
-const BIAS_LAT = 28.3;
-const BIAS_LON = -15.8;
 
 export interface AddressResult {
   label: string;
@@ -28,7 +20,7 @@ function buildLabel(p: Record<string, unknown>): string {
 }
 
 /**
- * Search addresses/POIs worldwide, Canary-biased. Returns up to `limit` results.
+ * Search addresses/POIs worldwide. Returns up to `limit` results.
  * `lang` picks Photon's localized names ('es' | 'en' | 'de' | 'fr' | 'default').
  */
 export async function searchAddress(
@@ -41,8 +33,6 @@ export async function searchAddress(
   const params = new URLSearchParams({
     q,
     limit: String(opts.limit ?? 6),
-    lat: String(BIAS_LAT),
-    lon: String(BIAS_LON),
   });
   const lang = opts.lang;
   if (lang && ['de', 'en', 'fr', 'default'].includes(lang)) {
