@@ -1,5 +1,7 @@
 # Tagor
 
+[![CI](https://github.com/euphorbia-lab/Tagor/actions/workflows/ci.yml/badge.svg)](https://github.com/euphorbia-lab/Tagor/actions/workflows/ci.yml)
+
 **Create an event. Share one link. That's it.**
 
 No accounts, no public list, nothing to install. You make an event, you get a private link

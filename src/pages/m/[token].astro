@@ -9,7 +9,7 @@ export const prerender = false;
 
 const { token } = Astro.params;
 
-let ev: {
+type ManagedEvent = {
   payload: string | null;
   start_at: string;
   end_at: string | null;
@@ -17,7 +17,9 @@ let ev: {
   lang: string;
   view_slug: string;
   image_count: number;
-} | null = null;
+};
+
+let ev: ManagedEvent | null = null;
 
 if (token) {
   const { data, error } = await getServiceClient()
@@ -26,7 +28,7 @@ if (token) {
     .eq('manage_token', token)
     .maybeSingle();
   if (error) console.error('manage lookup failed:', error.message);
-  ev = data as typeof ev;
+  ev = data as ManagedEvent | null;
 }
 
 if (!ev) {

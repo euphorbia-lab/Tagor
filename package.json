@@ -9,6 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "test": "vitest run",
     "android:init": "cd android && npx @bubblewrap/cli init --manifest https://tagor.app/site.webmanifest",
     "android:build": "cd android && npx @bubblewrap/cli build",
     "android:update": "cd android && npx @bubblewrap/cli update"
@@ -32,6 +33,7 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^5.0.4"
   }
 }
