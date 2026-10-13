@@ -105,18 +105,24 @@ const isProd = import.meta.env.PROD;
 
     {langRedirect && (
       <script is:inline define:vars={{ langRedirect }}>
+        // The Spanish root sends every non-Spanish browser to /en/. Runs in the
+        // browser only (these pages are static), so nothing about the visitor
+        // reaches the server. The one thing saved, on this device, is an explicit
+        // pick from the ES/EN switch, so someone who chose Spanish stays there.
         (() => {
+          let choice = null;
           try {
-            const stored = localStorage.getItem('tagor-lang');
-            if (stored) return;
-            const prefersSpanish = (navigator.language || '').toLowerCase().startsWith('es');
-            if (langRedirect === 'es' && !prefersSpanish) {
-              localStorage.setItem('tagor-lang', 'en');
-              location.replace('/en/');
-              return;
-            }
-            localStorage.setItem('tagor-lang', langRedirect);
+            localStorage.removeItem('tagor-lang'); // old key: recorded the first visit, not a choice
+            choice = localStorage.getItem('tagor-lang-choice');
+            document.addEventListener('click', (e) => {
+              const link = e.target instanceof Element && e.target.closest('[data-set-lang]');
+              if (link) localStorage.setItem('tagor-lang-choice', link.getAttribute('data-set-lang'));
+            });
           } catch (_) {}
+          if (langRedirect !== 'es') return;
+          const browser = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase();
+          const wantsSpanish = choice ? choice === 'es' : browser.startsWith('es');
+          if (!wantsSpanish) location.replace('/en/');
         })();
       </script>
     )}
