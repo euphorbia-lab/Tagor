@@ -50,3 +50,6 @@ hs_err_pid*.log
 
 # local Claude Code config
 .claude/
+
+# supabase cli local state
+supabase/.temp/
